@@ -18,10 +18,13 @@ public class UCTNode {
     private final long hash;
     public final int player;
     public final int[] move;
-
     private boolean expanded = false, simulated = false;
     private List<UCTNode> children;
+
+    // For debug only
+    public String boardString;
     public ArrayList<Double> timeSeries;
+    public int solvedWinFor = 0;
 
     public State state;
 
@@ -76,11 +79,12 @@ public class UCTNode {
 
         double[] result = {Integer.MIN_VALUE, Integer.MIN_VALUE};
         // (Solver) Check for proven win / loss / draw
-        if (child.isSolved()) {
+        if (!child.isSolved()) {
             // Execute the move represented by the child
-            board.doMove(child.move);
+            if(!isTerminal())
+                board.doMove(child.move);
             // When a leaf is reached return the result of the playout
-            if (!child.simulated) {
+            if (!child.simulated || isTerminal()) {
                 result = child.playOut(board); // WARN a single copy of the board is used
                 child.updateStats(result);
                 child.simulated = true;
@@ -96,17 +100,17 @@ public class UCTNode {
         // Check for a solved node
         if (child.getValue(player) == State.INF) { // TODO Check the state of the selection here and the number of the winning player
             // One of my children is a proven win
-            setSolved(3 - player); // I'm a proven loss for the parent // TODO Check this
+            setSolved(player); // I'm a proven loss for the parent // TODO Check this
             // Backprop a win
             result = new double[2];
-            result[player] = 1;
-            result[3 - player] = -1;
+            result[player - 1] = 1;
+            result[(3 - player) - 1] = -1;
             return result;
         } else if (child.getValue(player) == -State.INF) {
             assert expanded : "Node not expanded";
             result = new double[2];
-            result[player] = -1;
-            result[3 - player] = 1;
+            result[player - 1] = -1;
+            result[(3 - player) - 1] = 1;
             // Check if all children are a proven loss
             for (UCTNode c : children) {
                 if (c.getValue(player) != -State.INF) {
@@ -114,10 +118,10 @@ public class UCTNode {
                     updateStats(result);
                     return result;
                 }
-                // TODO Check this
-                setSolved(player); // I'm a proven win for the parent
-                return result;
             }
+            // TODO Check this
+            setSolved(3 - player); // I'm a proven win for the parent
+            return result;
         }
 
         assert (result[0] > Integer.MIN_VALUE) && (result[1] > Integer.MIN_VALUE) : "Result not initialized";
@@ -146,9 +150,11 @@ public class UCTNode {
             IBoard tempBoard = board.clone();
             tempBoard.doMove(move);
             UCTNode child = new UCTNode(3 - player, move, options, tempBoard.hash(), tt);
+            if(Options.debug)
+                child.boardString = tempBoard.toString();
 
             // We've expanded an already proven won node
-            if(child.isSolved() && child.getValue(player) == State.INF)
+            if (child.isSolved() && child.getValue(player) == State.INF)
                 winNode = child;
             else {
                 // Check for a winner, (Solver)
@@ -156,7 +162,7 @@ public class UCTNode {
                 if (winner == player) {
                     winNode = child;
                     child.setSolved(player);
-                } else if (winner == 3 - player)
+                } else if (winner == (3 - player))
                     child.setSolved(3 - player);
             }
             // implicit minimax
@@ -251,19 +257,21 @@ public class UCTNode {
 
         double[] score = {0, 0};
 
-        if (!interrupted) {
-            score[winner] += options.etWv;
-        } else {
+        if (options.earlyTerm && !interrupted) {
+            score[winner - 1] += options.etWv;
+        } else if (options.earlyTerm) {
             double eval = board.evaluate(0); // TODO - Is it better to include the value of the evaluation here?
             if (eval > options.etT)
                 score[0]++;
             else if (eval < -options.etT)
                 score[1]++;
+        } else if (winner != IBoard.DRAW) {
+            score[winner - 1] = 1;
         }
         return score;
     }
 
-    public UCTNode getBestChild(boolean print) {
+    public UCTNode getBestChild(boolean print, IBoard board) {
         if (children == null)
             return null;
         double max = Double.NEGATIVE_INFINITY, value;
@@ -281,8 +289,9 @@ public class UCTNode {
                 max = value;
                 bestChild = t;
             }
+
             if (print)
-                System.out.println(t);
+                System.out.println(t.toString(board));
         }
         return bestChild;
     }
@@ -306,14 +315,15 @@ public class UCTNode {
     private void setSolved(int player) {
         if (state == null)
             state = tt.getState(hash, false);
-
+        this.solvedWinFor = player;
         state.setSolved(player);
     }
 
-    private boolean isSolved() {
+    public boolean isSolved() {
         if (state == null)
             state = tt.getState(hash, true);
-
+        if (state == null)
+            return false;
         return state.isSolved();
     }
 
@@ -328,6 +338,8 @@ public class UCTNode {
     private double getImValue(int player) {
         if (state == null)
             state = tt.getState(hash, true);
+        if (state == null)
+            return 0;
         return state.getImValue(player);
     }
 
@@ -337,7 +349,8 @@ public class UCTNode {
     public double getValue(int player) {
         if (state == null)
             state = tt.getState(hash, true);
-
+        if (state == null)
+            return 0;
         return state.getMean(player);
     }
 
@@ -354,20 +367,13 @@ public class UCTNode {
         return state.getVisits();
     }
 
-    private State getState(boolean existingOnly) {
-        if (state == null)
-            state = tt.getState(hash, existingOnly);
-
-        return state;
-    }
-
     public boolean isTerminal() {
         return children != null && children.size() == 0;
     }
 
     public String toString(IBoard board) {
         if (state != null)
-            return board.getMoveString(move) + " - " + state.toString();
+            return board.getMoveString(move) + " - " + state.toString(player);
         else
             return board.getMoveString(move) + " no state";
     }

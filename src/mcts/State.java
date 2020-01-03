@@ -46,8 +46,8 @@ public class State {
     }
 
     public double getRegressionValue(int steps, int player) {
-        if(simpleRegression != null && simpleRegression[player].getN() > 10)
-            return simpleRegression[player].predict(visits + steps);
+        if(simpleRegression != null && simpleRegression[player - 1].getN() > 10)
+            return simpleRegression[player - 1].predict(visits + steps);
         else
             return Integer.MIN_VALUE;
     } // TODO Check if it should be visits + steps or just steps...
@@ -56,7 +56,7 @@ public class State {
         visited = true;
         if (solvedPlayer == 0) { // Position is not solved, return mean
             if (visits > 0)
-                return getSums()[player] / visits;
+                return getSums()[player - 1] / visits;
             else
                 return 0;
         } else    // Position is solved, return inf
@@ -64,11 +64,11 @@ public class State {
     }
 
     public void setImValue(double val, int player) {
-        imValue[player] = val;
+        imValue[player - 1] = val;
     }
 
     public double getImValue(int player) {
-        return imValue[player];
+        return imValue[player - 1];
     }
 
     public void setSolved(int player) {
@@ -91,8 +91,8 @@ public class State {
     public String toString(int player) {
         if (solvedPlayer == 0) {
             String str = df2.format(getMean(player)) + "\tn:" + visits;
-            if (imValue[player] > Integer.MIN_VALUE)
-                str += "\tim: " + imValue[player];
+            if (imValue[player - 1] > Integer.MIN_VALUE)
+                str += "\tim: " + imValue[player - 1];
             if (simpleRegression != null)
                 str += "\treg: " + getRegressionValue(1, player);
             return str;

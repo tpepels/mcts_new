@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Random;
 
 public class Board implements IBoard {
-    public static final int P1 = 1, NONE_WIN = -1, CAPTURED = -1, PIECES = 16;
+    public static final int P1 = 1, CAPTURED = -1, PIECES = 16;
     private static final String rowLabels = "87654321", colLabels = "abcdefgh";
     private static final int[] lorentzValues =
             {5, 15, 15, 5, 5, 15, 15, 5,
@@ -70,10 +70,12 @@ public class Board implements IBoard {
             whiteHash = rng.nextLong();
             blackHash = rng.nextLong();
         }
+
         // now build the initial hash
         zbHash = 0;
         for (int i = 0; i < 8 * 8; i++)
             zbHash ^= zbnums[i][board[i] / 100];
+
         zbHash ^= whiteHash;
     }
 

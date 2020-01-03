@@ -6,7 +6,7 @@ public interface IBoard {
     /**
      * Win/loss/draw and player definitions, don't change these
      */
-    int NONE_WIN = 0, P1_WIN = 1, P2_WIN = 2, P3_WIN = 3, P4_WIN = 4, DRAW = 100;
+    int NONE_WIN = 0, P1_WIN = 1, P2_WIN = 2, DRAW = 100;
     int P1 = 1, P2 = 2;
 
     String getMoveString(int[] move);

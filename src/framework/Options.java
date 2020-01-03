@@ -4,7 +4,7 @@ import java.util.Random;
 
 public class Options {
     public static final Random r = new Random();
-    public static final boolean debug = false;
+    public static boolean debug = false;
 
     // Various experimental variables
     public int nSamples = 1; // The number of samples per UCT simulation
