@@ -28,11 +28,11 @@ public class UCTNode {
     /**
      * Constructor for the root
      */
-    public UCTNode(int player, Options options, IBoard board, TransposTable tt) {
+    public UCTNode(int player, Options options, long hash, TransposTable tt) {
         this.player = player;
         this.options = options;
         this.tt = tt;
-        this.hash = board.hash();
+        this.hash = hash;
         this.state = tt.getState(hash, true);
         this.move = null;
     }
@@ -40,14 +40,14 @@ public class UCTNode {
     /**
      * Constructor for internal node
      */
-    public UCTNode(int player, int[] move, Options options, IBoard board, TransposTable tt) {
+    public UCTNode(int player, int[] move, Options options, long hash, TransposTable tt) {
         this.player = player;
         this.move = move;
         this.options = options;
         this.tt = tt;
-        this.hash = board.hash();
+        this.hash = hash;
         this.state = tt.getState(hash, true);
-        if(options.debug)
+        if (options.debug)
             timeSeries = new ArrayList<>();
     }
 
@@ -58,15 +58,15 @@ public class UCTNode {
      * @return the currently evaluated playout value of the node
      */
     public double[] MCTS(IBoard board, int depth) {
-        if (board.hash() != hash)
-            throw new RuntimeException("Incorrect hash");
+        assert board.hash() == hash : "Board hash is incorrect";
+        assert board.getPlayerToMove() == player : "Incorrect player to move";
+        // TODO Build in some more assertions here
 
         UCTNode child = null;
         // First add some leafs if required
-        if (!expanded) {
-            // Expand returns any node that leads to a win
-            child = expand(board);
-        }
+        if (!expanded)
+            child = expand(board); // Expand returns any node that leads to a win
+
         // Select the best child, if we didn't find a winning position in the expansion
         if (child == null)
             if (isTerminal())
@@ -74,95 +74,104 @@ public class UCTNode {
             else
                 child = select();
 
-        double[] result;
+        double[] result = {Integer.MIN_VALUE, Integer.MIN_VALUE};
         // (Solver) Check for proven win / loss / draw
-        if (Math.abs(child.getValue(player)) != State.INF) {
+        if (child.isSolved()) {
             // Execute the move represented by the child
             board.doMove(child.move);
             // When a leaf is reached return the result of the playout
             if (!child.simulated) {
-                child.updateStats(child.playOut(board));
+                result = child.playOut(board); // WARN a single copy of the board is used
+                child.updateStats(result);
                 child.simulated = true;
-            } else {
+            } else
                 result = child.MCTS(board, depth + 1);
-            }
-        }
 
-        // (Solver) If one of the children is a win, then I'm a win
-        if (child.getValue(player) == State.INF) {
-            // If I have a win, my parent has a loss.
-            setSolved(3 - player);
-            result = new double[2];
-            result[player] = 1; // Backprop a win for the current player
-            // TODO ====== Hier was je gebleven
-        } else if (result == -State.INF && expanded) {
-            // (Solver) Check if all children are a loss
-            for (UCTNode tn : children) {
-                // Are all children a loss?
-                if (tn.getValue() != result) {
-                    // Return a single loss, if not all children are a loss
-                    updateStats(1);
-                    return -1;
-                }
-            }
-            setSolved(true);
-            return result; // always return in view of me
-        }
-        if (Math.abs(getValue()) != State.INF)
-            // Update the results for the current node
             updateStats(result);
-        else
-            // Sometimes the node becomes solved deeper in the tree
-            return getValue();
+            // For displaying the time-series charts
+            if (options.debug && depth == 0)
+                child.timeSeries.add(child.getValue(player));
+        }
 
-        if(options.debug && depth == 0)
-            child.timeSeries.add(child.getValue());
-        // Back-propagate the result always return in view of me
+        // Check for a solved node
+        if (child.getValue(player) == State.INF) { // TODO Check the state of the selection here and the number of the winning player
+            // One of my children is a proven win
+            setSolved(3 - player); // I'm a proven loss for the parent // TODO Check this
+            // Backprop a win
+            result = new double[2];
+            result[player] = 1;
+            result[3 - player] = -1;
+            return result;
+        } else if (child.getValue(player) == -State.INF) {
+            assert expanded : "Node not expanded";
+            result = new double[2];
+            result[player] = -1;
+            result[3 - player] = 1;
+            // Check if all children are a proven loss
+            for (UCTNode c : children) {
+                if (c.getValue(player) != -State.INF) {
+                    // Return a single loss, if not all children are a loss
+                    updateStats(result);
+                    return result;
+                }
+                // TODO Check this
+                setSolved(player); // I'm a proven win for the parent
+                return result;
+            }
+        }
+
+        assert (result[0] > Integer.MIN_VALUE) && (result[1] > Integer.MIN_VALUE) : "Result not initialized";
+
         return result;
     }
 
     private UCTNode expand(IBoard board) {
-        int nextPlayer = (3 - board.getPlayerToMove());
         // If one of the nodes is a win, we don't have to select
         UCTNode winNode = null;
         MoveList moves = board.getExpandMoves(null);
         if (children == null)
             children = new LinkedList<>();
+
         int winner = board.checkWin();
+        // TODO Why are we expanding? Shouldn't this node already be proven?
         // Board is terminal, don't expand
         if (winner != IBoard.NONE_WIN)
             return null;
-        int best_imVal = getImValue();
+
+        double best_imVal = getImValue(player);
         int[] move;
         // Add all moves as children to the current node
         for (int i = 0; i < moves.size(); i++) {
             move = moves.get(i);
-           IBoard tempBoard = board.clone();
+            IBoard tempBoard = board.clone();
             tempBoard.doMove(move);
-            UCTNode child = new UCTNode(nextPlayer, move, options, tempBoard, tt);
+            UCTNode child = new UCTNode(3 - player, move, options, tempBoard.hash(), tt);
 
-            if (Math.abs(child.getValue()) != State.INF) {
+            // We've expanded an already proven won node
+            if(child.isSolved() && child.getValue(player) == State.INF)
+                winNode = child;
+            else {
                 // Check for a winner, (Solver)
                 winner = tempBoard.checkWin();
                 if (winner == player) {
                     winNode = child;
-                    child.setSolved(true);
-                } else if (winner == nextPlayer) {
-                    child.setSolved(false);
-                }
+                    child.setSolved(player);
+                } else if (winner == 3 - player)
+                    child.setSolved(3 - player);
             }
             // implicit minimax
             if (options.imm) {
                 int imVal = tempBoard.evaluate(player);
-                child.setImValue(imVal); // view of parent
+                child.setImValue(imVal, player); // view of parent
                 if (imVal > best_imVal)
                     best_imVal = imVal;
             }
             children.add(child);
         }
         expanded = true;
+
         if (options.imm)
-            this.setImValue(-best_imVal);
+            setImValue(best_imVal, player);
 
         // If one of the nodes is a win, return it.
         return winNode;
@@ -171,14 +180,14 @@ public class UCTNode {
     private UCTNode select() {
         UCTNode selected = null;
         double max = Double.NEGATIVE_INFINITY;
-        int maxIm = Integer.MIN_VALUE, minIm = Integer.MAX_VALUE;
+        double maxIm = Integer.MIN_VALUE, minIm = Integer.MAX_VALUE;
         // Use UCT down the tree
         double uctValue, np = getVisits();
 
         if (options.imm) {
-            int val;
+            double val;
             for (UCTNode c : children) {
-                val = c.getImValue();
+                val = c.getImValue(player);
                 if (val > maxIm)
                     maxIm = val;
                 if (val < minIm)
@@ -189,30 +198,33 @@ public class UCTNode {
         for (UCTNode c : children) {
             double nc = c.getVisits();
             // Always select a proven win
-            if (c.getValue() == State.INF)
+            if (c.getValue(player) == State.INF)
                 uctValue = State.INF + Options.r.nextDouble();
-            else if (c.getVisits() == 0 && c.getValue() != -State.INF) {
+            else if (c.getValue(player) == -State.INF)
+                uctValue = -State.INF - Options.r.nextDouble();
+            else if (c.getVisits() == 0)
                 // First, visit all children at least once
                 uctValue = 100. + Options.r.nextDouble();
-            } else if (c.getValue() == -State.INF) {
-                uctValue = -State.INF + Options.r.nextDouble();
-            } else {
-                double avgValue = c.getValue();
-                // Linear regression TODO Check if player value is correct!
-                if(options.regression && c.getVisits() > 5) {
-                    double regVal = c.getState().getRegressionValue(options.regForecastSteps, player);
-                    if(!Double.isNaN(regVal))
-                        avgValue = (1. - options.regAlpha) * avgValue +  options.regAlpha * regVal;
+            else {
+                double avgValue = c.getValue(player);
+
+                // Linear regression
+                if (options.regression && c.state != null) {
+                    double regVal = c.state.getRegressionValue(options.regForecastSteps, player);
+                    if (regVal > Integer.MIN_VALUE) // This value is returned if there weren't enough visits to predict
+                        avgValue = (1. - options.regAlpha) * avgValue + (options.regAlpha * regVal);
                 }
+
                 // Implicit minimax
                 if (options.imm && minIm != maxIm) {
-                    double imVal = (c.getImValue() - minIm) / (double) (maxIm - minIm);
+                    double imVal = (c.getImValue(player) - minIm) / (maxIm - minIm);
                     avgValue = (1. - options.imAlpha) * avgValue + (options.imAlpha * imVal);
                 }
+
                 // Compute the uct value with the (new) average value
-                uctValue = avgValue + options.c * Math.sqrt(FastLog.log(np) / nc)
-                        + (Options.r.nextDouble() * 0.00001);
+                uctValue = avgValue + options.c * Math.sqrt(FastLog.log(np) / nc); // tie breaker
             }
+
             // Remember the highest UCT value
             if (uctValue > max) {
                 selected = c;
@@ -237,7 +249,7 @@ public class UCTNode {
                 interrupted = true;
         }
 
-        double[] score = {0,0};
+        double[] score = {0, 0};
 
         if (!interrupted) {
             score[winner] += options.etWv;
@@ -283,11 +295,11 @@ public class UCTNode {
         //
         // implicit minimax backups
         if (options.imm && children != null) {
-            int bestVal = Integer.MIN_VALUE;
+            double bestVal = Integer.MIN_VALUE;
             for (UCTNode c : children) {
-                if (c.getImValue() > bestVal) bestVal = c.getImValue();
+                if (c.getImValue(player) > bestVal) bestVal = c.getImValue(player);
             }
-            setImValue(-bestVal); // view of parent
+            setImValue(bestVal, player); // view of parent
         }
     }
 
@@ -300,23 +312,23 @@ public class UCTNode {
 
     private boolean isSolved() {
         if (state == null)
-            state = tt.getState(hash, false);
+            state = tt.getState(hash, true);
 
         return state.isSolved();
     }
 
-    private void setImValue(int imValue) {
+    private void setImValue(double imValue, int player) {
         if (state == null)
             state = tt.getState(hash, false);
 
-        if (state.imValue == Integer.MIN_VALUE)
-            state.setImValue(imValue);
+        if (state.getImValue(player) == Integer.MIN_VALUE)
+            state.setImValue(imValue, player);
     }
 
-    private int getImValue() {
+    private double getImValue(int player) {
         if (state == null)
-            state = tt.getState(hash, false);
-        return state.imValue;
+            state = tt.getState(hash, true);
+        return state.getImValue(player);
     }
 
     /**
@@ -335,14 +347,17 @@ public class UCTNode {
     private double getVisits() {
         if (state == null)
             state = tt.getState(hash, true);
+
         if (state == null)
             return 0.;
+
         return state.getVisits();
     }
 
-    private State getState() {
+    private State getState(boolean existingOnly) {
         if (state == null)
-            state = tt.getState(hash, false);
+            state = tt.getState(hash, existingOnly);
+
         return state;
     }
 
@@ -351,7 +366,7 @@ public class UCTNode {
     }
 
     public String toString(IBoard board) {
-        if(state != null)
+        if (state != null)
             return board.getMoveString(move) + " - " + state.toString();
         else
             return board.getMoveString(move) + " no state";

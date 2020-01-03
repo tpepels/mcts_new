@@ -9,7 +9,8 @@ public class State {
 
     public static float INF = 999999;
     public long hash;
-    public int visits = 0, lastVisit = 0, imValue = Integer.MIN_VALUE;
+    public int visits = 0, lastVisit = 0;
+    private double[] imValue = {Integer.MIN_VALUE, Integer.MIN_VALUE};
     private double[] sums = {0, 0};
     public short solvedPlayer = 0;
     public boolean visited = false;
@@ -45,7 +46,10 @@ public class State {
     }
 
     public double getRegressionValue(int steps, int player) {
-        return simpleRegression[player].predict(visits + steps);
+        if(simpleRegression != null && simpleRegression[player].getN() > 10)
+            return simpleRegression[player].predict(visits + steps);
+        else
+            return Integer.MIN_VALUE;
     } // TODO Check if it should be visits + steps or just steps...
 
     public double getMean(int player) {
@@ -59,8 +63,12 @@ public class State {
             return (player == solvedPlayer) ? INF : -INF;
     }
 
-    public void setImValue(int imValue) {
-        this.imValue = imValue;
+    public void setImValue(double val, int player) {
+        imValue[player] = val;
+    }
+
+    public double getImValue(int player) {
+        return imValue[player];
     }
 
     public void setSolved(int player) {
@@ -83,8 +91,8 @@ public class State {
     public String toString(int player) {
         if (solvedPlayer == 0) {
             String str = df2.format(getMean(player)) + "\tn:" + visits;
-            if (imValue > Integer.MIN_VALUE)
-                str += "\tim: " + imValue;
+            if (imValue[player] > Integer.MIN_VALUE)
+                str += "\tim: " + imValue[player];
             if (simpleRegression != null)
                 str += "\treg: " + getRegressionValue(1, player);
             return str;
