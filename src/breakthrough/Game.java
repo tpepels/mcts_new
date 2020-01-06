@@ -38,10 +38,11 @@ public class Game {
             m = aiPlayer.getBestMove();
             b.doMove(m);
 
-            System.out.println("Player " + player + " played " + Arrays.toString(m));
+            System.out.println(":: Player " + player + " moved " + b.getMoveString(m));
+            System.out.println(":: Evaluation P1" + b.evaluate(1) + " P2 " + b.evaluate(2));
         }
 
-        System.out.println("Winner is " + b.checkWin());
+        System.out.println(":: Winner is " + b.checkWin());
     }
 
 }

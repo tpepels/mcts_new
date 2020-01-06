@@ -200,7 +200,7 @@ public class Board implements IBoard {
     }
 
     private int checkLongest(int i, int j, int pl) {
-        int c = 1, max = 0;
+        int c = 1, max = 1;
         for (int k = i + 1; k < size; k++) {
             if (board[k][j] == pl) {
                 c++;

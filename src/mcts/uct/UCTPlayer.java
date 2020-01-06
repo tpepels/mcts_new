@@ -3,11 +3,13 @@ package mcts.uct;
 import framework.AIPlayer;
 import framework.IBoard;
 import framework.Options;
+import mcts.State;
 import mcts.TransposTable;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.knowm.xchart.*;
 import org.knowm.xchart.style.Styler;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +18,7 @@ public class UCTPlayer implements AIPlayer {
     private TransposTable tt = new TransposTable();
     public UCTNode root;
     private int[] bestMove;
+    private static final DecimalFormat df2 = new DecimalFormat("###,##0.000");
     //
     private Options options;
 
@@ -25,9 +28,6 @@ public class UCTPlayer implements AIPlayer {
             throw new RuntimeException("MCTS Options not set.");
 
         root = new UCTNode(board.getPlayerToMove(), options, board.hash(), tt);
-
-        if (options == null)
-            throw new RuntimeException("MCTS Options not set.");
 
         int simulations = 0;
         long startT = System.currentTimeMillis();
@@ -61,7 +61,7 @@ public class UCTPlayer implements AIPlayer {
         }
         long endT = System.currentTimeMillis();
         // Return the best move found
-        UCTNode bestChild = root.getBestChild(options.debug, board);
+        UCTNode bestChild = root.getBestChild(board);
         bestMove = bestChild.move;
         // Pack the transpositions
         int removed = tt.pack(1);
@@ -70,10 +70,10 @@ public class UCTPlayer implements AIPlayer {
         if (options.debug) {
             System.out.println("-------- < UCT Debug > ----------");
             System.out.println("- Player " + board.getPlayerToMove());
-            System.out.println("- Best child: " + bestChild.toString(board));
+            System.out.println("- Best child: " + bestChild.toString(board, board.getPlayerToMove()));
             System.out.println("- Play-outs: " + simulations);
             System.out.println("- Searched for: " + ((endT - startT) / 1000.) + " s.");
-            System.out.println("- " + (int) Math.round((1000. * simulations) / (endT - startT)) + " playouts per s");
+            System.out.println("- " + df2.format((int) Math.round((1000. * simulations) / (endT - startT))) + " playouts per s");
             System.out.println("- Pack cleaned: " + removed + " transpositions");
             System.out.println("-------- </UCT Debug > ----------");
 //            if(bestChild.state.simpleRegression != null) {

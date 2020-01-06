@@ -38,4 +38,12 @@ public class MoveList {
     public void clear() {
         size = 0;
     }
+
+    public int[][] getArray() {
+        int[][] movelist = new int[size][];
+        for(int i = 0; i < size; i++) {
+            movelist[i] = new int[] {movesFrom[i], movesTo[i]};
+        }
+        return movelist;
+    }
 }

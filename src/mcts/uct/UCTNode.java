@@ -7,7 +7,6 @@ import framework.util.FastLog;
 import mcts.State;
 import mcts.TransposTable;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -24,7 +23,6 @@ public class UCTNode {
     // For debug only
     public String boardString;
     public ArrayList<Double> timeSeries;
-    public int solvedWinFor = 0;
 
     public State state;
 
@@ -81,7 +79,7 @@ public class UCTNode {
         // (Solver) Check for proven win / loss / draw
         if (!child.isSolved()) {
             // Execute the move represented by the child
-            if(!isTerminal())
+            if (!isTerminal())
                 board.doMove(child.move);
             // When a leaf is reached return the result of the playout
             if (!child.simulated || isTerminal()) {
@@ -97,17 +95,27 @@ public class UCTNode {
                 child.timeSeries.add(child.getValue(player));
         }
 
-        // Check for a solved node
-        if (child.getValue(player) == State.INF) { // TODO Check the state of the selection here and the number of the winning player
+        // This segment solves the infrequent problem of transpositions getting solved in other parts of the tree
+        UCTNode solvedChild = (child.isSolved()) ? child : null;
+        if (solvedChild == null) {
+            for (UCTNode c : children) {
+                if (c.isSolved()) {
+                    if (solvedChild == null)
+                        solvedChild = c;
+                    else if (c.getValue(player) == State.INF) // Take a winning node if possible
+                        solvedChild = c;
+                }
+            }
+        }
+        if (solvedChild != null && solvedChild.getValue(player) == State.INF) {
             // One of my children is a proven win
-            setSolved(player); // I'm a proven loss for the parent // TODO Check this
+            setSolved(player);
             // Backprop a win
             result = new double[2];
             result[player - 1] = 1;
             result[(3 - player) - 1] = -1;
             return result;
-        } else if (child.getValue(player) == -State.INF) {
-            assert expanded : "Node not expanded";
+        } else if (solvedChild != null && solvedChild.getValue(player) == -State.INF) {
             result = new double[2];
             result[player - 1] = -1;
             result[(3 - player) - 1] = 1;
@@ -119,13 +127,10 @@ public class UCTNode {
                     return result;
                 }
             }
-            // TODO Check this
             setSolved(3 - player); // I'm a proven win for the parent
             return result;
         }
-
         assert (result[0] > Integer.MIN_VALUE) && (result[1] > Integer.MIN_VALUE) : "Result not initialized";
-
         return result;
     }
 
@@ -137,20 +142,23 @@ public class UCTNode {
             children = new LinkedList<>();
 
         int winner = board.checkWin();
-        // TODO Why are we expanding? Shouldn't this node already be proven?
+        assert winner == IBoard.NONE_WIN || winner == IBoard.DRAW : "Trying to expand a proven node";
         // Board is terminal, don't expand
         if (winner != IBoard.NONE_WIN)
             return null;
 
         double best_imVal = getImValue(player);
+
         int[] move;
         // Add all moves as children to the current node
         for (int i = 0; i < moves.size(); i++) {
             move = moves.get(i);
+
             IBoard tempBoard = board.clone();
             tempBoard.doMove(move);
             UCTNode child = new UCTNode(3 - player, move, options, tempBoard.hash(), tt);
-            if(Options.debug)
+
+            if (Options.debug)
                 child.boardString = tempBoard.toString();
 
             // We've expanded an already proven won node
@@ -159,11 +167,13 @@ public class UCTNode {
             else {
                 // Check for a winner, (Solver)
                 winner = tempBoard.checkWin();
-                if (winner == player) {
-                    winNode = child;
-                    child.setSolved(player);
-                } else if (winner == (3 - player))
-                    child.setSolved(3 - player);
+                if (winner == IBoard.P1 || winner == IBoard.P2) {
+
+                    if (winner == player)
+                        winNode = child;
+
+                    child.setSolved(winner);
+                }
             }
             // implicit minimax
             if (options.imm) {
@@ -175,7 +185,6 @@ public class UCTNode {
             children.add(child);
         }
         expanded = true;
-
         if (options.imm)
             setImValue(best_imVal, player);
 
@@ -242,36 +251,44 @@ public class UCTNode {
 
     private double[] playOut(IBoard board) {
         int winner = board.checkWin(), nMoves = 0;
+        assert winner == IBoard.NONE_WIN || winner == IBoard.DRAW : "Board in terminal position in playout.";
         int[] move;
         boolean interrupted = false;
         MoveList moves;
-        while (winner == IBoard.NONE_WIN && !interrupted) {
+
+        do {
             moves = board.getPlayoutMoves(options.heuristics);
+            // No more moves to be made
+            if (moves.size() == 0)
+                break;
             move = moves.get(Options.r.nextInt(moves.size()));
             board.doMove(move);
             winner = board.checkWin();
             nMoves++;
+            // Interrupt playout for early evaluation
             if (winner == IBoard.NONE_WIN && options.earlyTerm && nMoves == options.termDepth)
                 interrupted = true;
-        }
+        } while (winner == IBoard.NONE_WIN && !interrupted);
 
         double[] score = {0, 0};
 
-        if (options.earlyTerm && !interrupted) {
-            score[winner - 1] += options.etWv;
-        } else if (options.earlyTerm) {
-            double eval = board.evaluate(0); // TODO - Is it better to include the value of the evaluation here?
-            if (eval > options.etT)
-                score[0]++;
-            else if (eval < -options.etT)
-                score[1]++;
-        } else if (winner != IBoard.DRAW) {
+        if (options.earlyTerm) {
+            if (!interrupted) {
+                score[winner - 1] += options.etWv;
+            } else {
+                double eval = board.evaluate(0); // TODO - Is it better to include the value of the evaluation here?
+                if (eval > options.etT)
+                    score[0]++;
+                else if (eval < -options.etT)
+                    score[1]++;
+            }
+        } else if (winner != IBoard.DRAW)
             score[winner - 1] = 1;
-        }
+
         return score;
     }
 
-    public UCTNode getBestChild(boolean print, IBoard board) {
+    public UCTNode getBestChild(IBoard board) {
         if (children == null)
             return null;
         double max = Double.NEGATIVE_INFINITY, value;
@@ -289,9 +306,6 @@ public class UCTNode {
                 max = value;
                 bestChild = t;
             }
-
-            if (print)
-                System.out.println(t.toString(board));
         }
         return bestChild;
     }
@@ -315,7 +329,7 @@ public class UCTNode {
     private void setSolved(int player) {
         if (state == null)
             state = tt.getState(hash, false);
-        this.solvedWinFor = player;
+
         state.setSolved(player);
     }
 
@@ -371,7 +385,15 @@ public class UCTNode {
         return children != null && children.size() == 0;
     }
 
-    public String toString(IBoard board) {
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(move[0]).append(".").append(move[1]).append(" ");
+        sb.append(state.toString(1)).append(" ").append(state.toString(2));
+        return sb.toString();
+    }
+
+    public String toString(IBoard board, int player) {
         if (state != null)
             return board.getMoveString(move) + " - " + state.toString(player);
         else
