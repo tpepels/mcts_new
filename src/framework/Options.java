@@ -12,7 +12,7 @@ public class Options {
     public boolean fixedSimulations = false; // Whether to do a timed run or a run limited by a number of simulations
     public int time = 5000; // Time in ms to run UCT
     public int nSimulations = 10000; // The number of UCT simulations per turn
-    public boolean heuristics = false; // Whether to use improved heuristics in playouts
+    public boolean heuristics = true; // Whether to use improved heuristics in playouts
 
     // Parameters for early playout termination
     public boolean earlyTerm = false; // Whether to terminate playouts before the end of the game and return a value

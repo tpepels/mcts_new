@@ -28,6 +28,8 @@ public class Board implements IBoard {
     private int nPieces1, progress1, lorentzPV1, nPieces2, progress2, lorentzPV2;
     private long zbHash = 0;
 
+    public boolean print = false;
+
     public void initialize() {
         board = new int[64];
         pieces = new int[2][PIECES];
@@ -169,6 +171,8 @@ public class Board implements IBoard {
 
     public void generateMovesForPiece(int from, int moveMode, MoveList moveList, MoveList captures, boolean heuristics) {
         int r = from / 8, c = from % 8, to;
+        int l1 = 0, l2 = 0, l3 = 0;
+
         // Generate the moves!
         if (inBounds(r + moveMode, c - 1)) {
             to = (r + moveMode) * 8 + (c - 1);
@@ -190,7 +194,9 @@ public class Board implements IBoard {
                     for (int j = 0; j < n; j++) {
                         moveList.add(from, to);
                     }
+                    l1 = getLorentzPV(playerToMove, to) - getLorentzPV(playerToMove, from);
                 }
+
             }
         }
         if (inBounds(r + moveMode, c + 1)) {
@@ -213,6 +219,7 @@ public class Board implements IBoard {
                     for (int j = 0; j < n; j++) {
                         moveList.add(from, to);
                     }
+                    l2 = getLorentzPV(playerToMove, to) - getLorentzPV(playerToMove, from);
                 }
             }
         }
@@ -233,6 +240,27 @@ public class Board implements IBoard {
                     for (int j = 0; j < n; j++) {
                         moveList.add(from, to);
                     }
+                    l3 = getLorentzPV(playerToMove, to) - getLorentzPV(playerToMove, from);
+                }
+            }
+        }
+
+        if (heuristics) {
+            int np = 3;
+            if (l1 > l2 && l1 > l3) {
+                to = (r + moveMode) * 8 + (c - 1);
+                for (int j = 0; j < np; j++) {
+                    moveList.add(from, to);
+                }
+            } else if (l2 > l3 && l2 > l1) {
+                to = (r + moveMode) * 8 + (c + 1);
+                for (int j = 0; j < np; j++) {
+                    moveList.add(from, to);
+                }
+            } else if (l3 > l1 && l3 > l2) {
+                to = (r + moveMode) * 8 + c;
+                for (int j = 0; j < np; j++) {
+                    moveList.add(from, to);
                 }
             }
         }
@@ -241,7 +269,6 @@ public class Board implements IBoard {
     @Override
     public int evaluate(int player) {
         int p1eval = 10 * (nPieces1 - nPieces2);
-//        p1eval += (2.5 * progress1) - (2.5 * progress2);
         p1eval += lorentzPV1 - lorentzPV2;
         // Check for piece safety
         for (int i = 0; i < pieces[0].length; i++) {
@@ -327,7 +354,6 @@ public class Board implements IBoard {
                     return antiDecisive;
                 }
             }
-
             if (!captures.isEmpty())
                 return captures;
         }
@@ -360,35 +386,6 @@ public class Board implements IBoard {
 
     public long hash() {
         return zbHash;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        //
-        for (int r = 0; r < 8; r++) {
-            sb.append(rowLabels.charAt(r));
-            for (int c = 0; c < 8; c++) {
-                int player = board[r * 8 + c] / 100;
-                switch (player) {
-                    case 1:
-                        sb.append('w');
-                        break;
-                    case 2:
-                        sb.append('b');
-                        break;
-                    case 0:
-                        sb.append('.');
-                }
-            }
-            sb.append("\n");
-        }
-        sb.append(" ").append(colLabels).append("\n");
-        sb.append("\nPieces: (").append(nPieces1).append(", ").append(nPieces2)
-                .append(") nMoves: ").append(nMoves).append("\nProgress: ")
-                .append(progress1).append(", ").append(progress2).append("\nLorentz: ")
-                .append(lorentzPV1).append(" ").append(lorentzPV2);
-        return sb.toString();
     }
 
     @Override
@@ -457,5 +454,34 @@ public class Board implements IBoard {
         char cc = (char) (c + 97);
         char cpc = (char) (cp + 97);
         return String.format("%c%d%c%d", cc, 8 - r, cpc, 8 - rp);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        //
+        for (int r = 0; r < 8; r++) {
+            sb.append(rowLabels.charAt(r));
+            for (int c = 0; c < 8; c++) {
+                int player = board[r * 8 + c] / 100;
+                switch (player) {
+                    case 1:
+                        sb.append('w');
+                        break;
+                    case 2:
+                        sb.append('b');
+                        break;
+                    case 0:
+                        sb.append('.');
+                }
+            }
+            sb.append("\n");
+        }
+        sb.append(" ").append(colLabels).append("\n");
+        sb.append("\nPieces: (").append(nPieces1).append(", ").append(nPieces2)
+                .append(") nMoves: ").append(nMoves).append("\nProgress: ")
+                .append(progress1).append(", ").append(progress2).append("\nLorentz: ")
+                .append(lorentzPV1).append(" ").append(lorentzPV2);
+        return sb.toString();
     }
 }

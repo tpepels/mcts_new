@@ -52,7 +52,6 @@ public class UCTPlayer implements AIPlayer {
                 simulations++;
                 // Make one simulation from root to leaf.
                 // Note: stats at the root node are in view of the root player (also never used)
-                // Make one simulation from root to leaf.
                 root.MCTS(board.clone(), 0);
                 // TODO Check if this works
                 if (root.isSolved())
@@ -70,7 +69,7 @@ public class UCTPlayer implements AIPlayer {
         if (options.debug) {
             System.out.println("-------- < UCT Debug > ----------");
             System.out.println("- Player " + board.getPlayerToMove());
-            System.out.println("- Best child: " + bestChild.toString(board, board.getPlayerToMove()));
+            System.out.println("- Best child: " + bestChild.toString(board));
             System.out.println("- Play-outs: " + simulations);
             System.out.println("- Searched for: " + ((endT - startT) / 1000.) + " s.");
             System.out.println("- " + df2.format((int) Math.round((1000. * simulations) / (endT - startT))) + " playouts per s");

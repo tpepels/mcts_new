@@ -38,12 +38,14 @@ public class POTester implements AIPlayer {
                 } else {
                     moveProb.put(cMove, c);
                     cMove = moveArr[i];
+                    c = 1;
                 }
             }
-            double N = moveProb.size();
+            moveProb.put(cMove, c);
+            double N = moveArr.length;
             for(int[] mv : moveProb.keySet()) {
                 double prob = (moveProb.get(mv) / N) * 100.;
-                System.out.println("- " + board.getMoveString(mv) + " moveProb: " + df2.format(prob) + "%");
+                System.out.println("- " + board.getMoveString(mv) + " moveProb: " + df2.format(prob) + "%" + " n: " + moveProb.get(mv));
                 IBoard cBoard = board.clone();
                 cBoard.doMove(mv);
                 System.out.println("- " + board.getMoveString(mv) + " eval: " + cBoard.evaluate(board.getPlayerToMove()));

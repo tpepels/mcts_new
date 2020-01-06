@@ -10,7 +10,7 @@ public class State {
     public static float INF = 999999;
     public long hash;
     public int visits = 0, lastVisit = 0;
-    private double[] imValue = {Integer.MIN_VALUE, Integer.MIN_VALUE};
+    private double[] imValue = {-INF, -INF};
     private double[] sums = {0, 0};
     public short solvedPlayer = 0;
     public boolean visited = false;
@@ -46,7 +46,7 @@ public class State {
     }
 
     public double getRegressionValue(int steps, int player) {
-        if(simpleRegression != null && simpleRegression[player - 1].getN() > 10)
+        if (simpleRegression != null && simpleRegression[player - 1].getN() > 10)
             return simpleRegression[player - 1].predict(visits + steps);
         else
             return Integer.MIN_VALUE;
@@ -56,7 +56,7 @@ public class State {
         visited = true;
         if (solvedPlayer == 0) { // Position is not solved, return mean
             if (visits > 0)
-                return getSums()[player - 1] / visits;
+                return (getSums()[player - 1] - getSums()[(3-player) -1]) / visits;
             else
                 return 0;
         } else    // Position is solved, return inf
@@ -88,13 +88,15 @@ public class State {
 
     private static final DecimalFormat df2 = new DecimalFormat("###,##0.000");
 
-    public String toString(int player) {
+    public String toString() {
         if (solvedPlayer == 0) {
-            String str = df2.format(getMean(player)) + "\tn:" + visits;
-            if (imValue[player - 1] > Integer.MIN_VALUE)
-                str += "\tim: " + imValue[player - 1];
-            if (simpleRegression != null)
-                str += "\treg: " + getRegressionValue(1, player);
+            String str = "val1: " + df2.format(getMean(1)) + " val2: " + df2.format(getMean(2)) + "  n: " + visits;
+            str += " ::  im1: " + df2.format(imValue[0]);
+            str += "  im2: " + df2.format(imValue[1]);
+            if (simpleRegression != null) {
+                str += " ::  reg1: " + getRegressionValue(1, 1);
+                str += "  reg2: " + getRegressionValue(1, 2);
+            }
             return str;
         } else
             return "solved win P" + solvedPlayer;
