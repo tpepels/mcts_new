@@ -137,7 +137,7 @@ public class UCTNode {
     private UCTNode expand(IBoard board) {
         // If one of the nodes is a win, we don't have to select
         UCTNode winNode = null;
-        MoveList moves = board.getExpandMoves(null);
+        MoveList moves = board.getExpandMoves();
         if (children == null)
             children = new LinkedList<>();
 
@@ -278,7 +278,7 @@ public class UCTNode {
             if (!interrupted) {
                 score[winner - 1] += options.etWv;
             } else {
-                double eval = board.evaluate(0); // TODO - Is it better to include the value of the evaluation here?
+                double eval = board.evaluate(1); // TODO - Is it better to include the value of the evaluation here?
                 if (eval > options.etT)
                     score[0]++;
                 else if (eval < -options.etT)

@@ -238,7 +238,7 @@ public class Board implements IBoard {
     }
 
     @Override
-    public MoveList getExpandMoves(MoveList captures) {
+    public MoveList getExpandMoves() {
         return getMoves();
     }
 

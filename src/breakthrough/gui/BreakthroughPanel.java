@@ -37,7 +37,7 @@ public class BreakthroughPanel extends JPanel implements MouseListener, MouseMot
 
         this.addMouseListener(this);
         this.addMouseMotionListener(this);
-        moves = board.getExpandMoves(null);
+        moves = board.getExpandMoves();
         Options.debug = true;
         aiPlayer1 = new UCTPlayer();
         Options options1 = new Options();
@@ -214,7 +214,7 @@ public class BreakthroughPanel extends JPanel implements MouseListener, MouseMot
             frame.setTitle("Breakthrough - Draw!");
             return;
         }
-        moves = board.getExpandMoves(null);
+        moves = board.getExpandMoves();
         // Run the GC in between moves, to limit the runs during search
         System.gc();
         //

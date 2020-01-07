@@ -28,7 +28,8 @@ public class Board implements IBoard {
     private int nPieces1, progress1, lorentzPV1, nPieces2, progress2, lorentzPV2;
     private long zbHash = 0;
 
-    public boolean print = false;
+    MoveList moveList = new MoveList(48);
+    MoveList captures = new MoveList(32);
 
     public void initialize() {
         board = new int[64];
@@ -157,24 +158,24 @@ public class Board implements IBoard {
     }
 
     @Override
-    public MoveList getExpandMoves(MoveList captures) {
-        MoveList allMoves = new MoveList(96);
+    public MoveList getExpandMoves() {
+        moveList.clear();
         int moveMode = (playerToMove == 1) ? -1 : 1;
         int[] playerPieces = pieces[playerToMove - 1];
         for (int playerPiece : playerPieces) {
             if (playerPiece == CAPTURED)
                 continue;
-            generateMovesForPiece(playerPiece, moveMode, allMoves, captures, false);
+            generateMovesForPiece(playerPiece, moveMode, moveList, false);
         }
-        return allMoves;
+        return moveList;
     }
 
     @Override
     public MoveList getPlayoutMoves(boolean heuristics) {
         // Check for decisive / anti-decisive moves
         if (heuristics && (progress1 > 3 || progress2 > 3) || Options.r.nextDouble() > .95) {
-            MoveList captures = new MoveList(32);
-            MoveList moveList = getExpandMoves(captures);
+            captures.clear();
+            getExpandMoves();
             if (progress1 >= 6 || progress2 >= 6) {
                 MoveList decisive = new MoveList(32);
                 MoveList antiDecisive = new MoveList(32);
@@ -199,14 +200,13 @@ public class Board implements IBoard {
         }
 
         // This should remove any bias towards selecting pieces with more available moves
-        MoveList moveList = (!heuristics) ? new MoveList(3) : new MoveList(48);
+        moveList.clear();
         int N = pieces[playerToMove - 1].length, S, nPieces = 2;
         for(int j = 0; j < nPieces; j++) {
             S = Options.r.nextInt(PIECES);
             for (int i = S; i < N + S; i++) {
                 if (pieces[playerToMove - 1][i % N] != CAPTURED) {
-                    generateMovesForPiece(pieces[playerToMove - 1][i % N], (playerToMove == 1) ? -1 : 1,
-                            moveList, null, heuristics);
+                    generateMovesForPiece(pieces[playerToMove - 1][i % N], (playerToMove == 1) ? -1 : 1, null, heuristics);
                     if (!moveList.isEmpty())
                         break;
                 }
@@ -215,10 +215,8 @@ public class Board implements IBoard {
         return moveList;
     }
 
-    public void generateMovesForPiece(int from, int moveMode, MoveList moveList, MoveList captures, boolean heuristics) {
+    public void generateMovesForPiece(int from, int moveMode, MoveList captures, boolean heuristics) {
         int r = from / 8, c = from % 8, to;
-        int l1 = 0, l2 = 0, l3 = 0;
-
         // Generate the moves!
         if (inBounds(r + moveMode, c - 1)) {
             to = (r + moveMode) * 8 + (c - 1);

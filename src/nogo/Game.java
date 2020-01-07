@@ -1,47 +1,44 @@
-package breakthrough;
+package nogo;
 
-import breakthrough.game.Board;
 import framework.AIPlayer;
 import framework.Options;
-import mcts.test.POTester;
 import mcts.uct.UCTPlayer;
-
-import java.util.Arrays;
+import nogo.game.Board;
 
 public class Game {
 
     public static void main(String[] args) {
+        Board.SIZE = 10;
         Board b = new Board();
         b.initialize();
         Options.debug = true;
-
-        AIPlayer aiPlayer1 = new UCTPlayer();
         Options options1 = new Options();
-        options1.fixedSimulations = true;
-        options1.nSimulations = 30000;
-        options1.heuristics = true;
+        AIPlayer aiPlayer1 = new UCTPlayer();
         aiPlayer1.setOptions(options1);
+        options1.fixedSimulations = true;
+        options1.nSimulations = 25000;
 
-        AIPlayer aiPlayer2 = new POTester();
         Options options2 = new Options();
+        AIPlayer aiPlayer2 = new UCTPlayer();
         aiPlayer2.setOptions(options2);
+        options2.fixedSimulations = true;
+        options2.nSimulations = 25000;
 
         AIPlayer aiPlayer;
-        int[] m;
-        //
+        int[] m = null;
         while (b.checkWin() == Board.NONE_WIN) {
             int player = b.getPlayerToMove();
             System.out.println(b.toString());
+
             aiPlayer = (b.getPlayerToMove() == 1 ? aiPlayer1 : aiPlayer2);
             System.gc();
             aiPlayer.getMove(b.clone());
             m = aiPlayer.getBestMove();
             b.doMove(m);
-
-            System.out.println(":: Player " + player + " moved " + b.getMoveString(m));
-            System.out.println(":: Evaluation P1: " + b.evaluate(1) + " P2: " + b.evaluate(2));
+            System.out.println("Player " + player + " played " + b.getMoveString(m));
         }
-        System.out.println(":: Winner is " + b.checkWin());
+
+        System.out.println("Winner is " + b.checkWin());
     }
 
 }

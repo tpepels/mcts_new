@@ -43,5 +43,5 @@ public interface IBoard {
 
     MoveList getPlayoutMoves(boolean heuristics);
 
-    MoveList getExpandMoves(MoveList captures);
+    MoveList getExpandMoves();
 }
