@@ -2,8 +2,8 @@ package mcts.uct;
 
 import framework.AIPlayer;
 import framework.IBoard;
+import framework.MoveCallback;
 import framework.Options;
-import mcts.State;
 import mcts.TransposTable;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.knowm.xchart.*;
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UCTPlayer implements AIPlayer {
-
+    private MoveCallback moveCallback;
     private TransposTable tt = new TransposTable();
     public UCTNode root;
     private int[] bestMove;
@@ -87,6 +87,9 @@ public class UCTPlayer implements AIPlayer {
         }
         // Set the root to the best child, so in the next move, the opponent's move can become the new root
         root = null;
+
+        if(moveCallback != null)
+            moveCallback.makeMove(bestMove);
     }
 
     private XYChart getScatterPlot(List<Double> yData, SimpleRegression simpleRegression, String name) {
@@ -119,6 +122,10 @@ public class UCTPlayer implements AIPlayer {
     @Override
     public int[] getBestMove() {
         return bestMove;
+    }
+
+    public void setMoveCallback(MoveCallback moveCallback) {
+        this.moveCallback = moveCallback;
     }
 }
 

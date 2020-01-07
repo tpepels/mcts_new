@@ -6,5 +6,7 @@ public interface AIPlayer {
     void setOptions(Options options);
 
     int[] getBestMove();
+
+    void setMoveCallback(MoveCallback moveCallback);
 }
 

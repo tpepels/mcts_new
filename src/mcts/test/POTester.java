@@ -1,9 +1,6 @@
 package mcts.test;
 
-import framework.AIPlayer;
-import framework.IBoard;
-import framework.MoveList;
-import framework.Options;
+import framework.*;
 
 import java.text.DecimalFormat;
 import java.util.*;
@@ -63,6 +60,8 @@ public class POTester implements AIPlayer {
     public int[] getBestMove() {
         return bestMove;
     }
+
+    public void setMoveCallback(MoveCallback moveCallback) {}
 
     private class moveComparator implements Comparator<int[]> {
 

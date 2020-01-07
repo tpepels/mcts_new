@@ -11,6 +11,7 @@ public class MoveList {
     }
 
     public void add(int from, int to) {
+        assert movesTo.length > size() : "Increasing movelist size";
         if(movesTo.length <= size()) {
             int[] movesToNew = new int[size * 2];
             int[] movesFromNew = new int[size * 2];
