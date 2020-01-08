@@ -62,7 +62,7 @@ public class UCTNode {
         assert board.hash() == hash : "Board hash is incorrect";
         assert board.getPlayerToMove() == player : "Incorrect player to move";
         // TODO Build in some more assertions here
-
+        // TODO RAVE AND MAST for Atarigo
         UCTNode child = null;
         // First add some leafs if required
         if (!expanded)
@@ -107,6 +107,7 @@ public class UCTNode {
                 }
             }
         }
+
         if (solvedChild != null && solvedChild.getValue(player) == State.INF) {
             // One of my children is a proven win
             setSolved(player);
@@ -179,6 +180,7 @@ public class UCTNode {
                 if (child.state == null) {
                     imVal = tempBoard.evaluate(player);
                     child.setImValue(imVal, player);
+                    child.setImValue(-imVal, (3 - player));
                 } else // IM Value was already determined elsewhere in the tree
                     imVal = child.getImValue(player);
 
@@ -257,7 +259,6 @@ public class UCTNode {
         int[] move;
         boolean interrupted = false;
         MoveList moves;
-
         do {
             moves = board.getPlayoutMoves(options.heuristics);
             // No more moves to be made
@@ -320,11 +321,15 @@ public class UCTNode {
         //
         // implicit minimax backups
         if (options.imm && children != null) {
-            double bestVal = Integer.MIN_VALUE;
+            double bestVal = Integer.MIN_VALUE, oppVal = Integer.MIN_VALUE;
             for (UCTNode c : children) {
-                if (c.getImValue(player) > bestVal) bestVal = c.getImValue(player);
+                if (c.getImValue(player) > bestVal) {
+                    bestVal = c.getImValue(player);
+                    oppVal = c.getImValue(3 - player);
+                }
             }
             setImValue(bestVal, player); // view of parent
+            setImValue(oppVal, 3 - player);
         }
     }
 

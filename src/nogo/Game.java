@@ -8,8 +8,7 @@ import nogo.game.Board;
 public class Game {
 
     public static void main(String[] args) {
-        Board.SIZE = 10;
-        Board b = new Board();
+        Board b = new Board(9);
         b.initialize();
         Options.debug = true;
         Options options1 = new Options();

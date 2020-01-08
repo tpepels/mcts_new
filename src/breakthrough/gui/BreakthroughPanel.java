@@ -35,8 +35,9 @@ public class BreakthroughPanel extends JPanel implements MouseListener, MouseMot
         else
             frame.setTitle("Breakthrough - White's move.");
 
-        this.addMouseListener(this);
-        this.addMouseMotionListener(this);
+        addMouseListener(this);
+        addMouseMotionListener(this);
+
         moves = board.getExpandMoves();
         Options.debug = true;
         aiPlayer1 = new UCTPlayer();
