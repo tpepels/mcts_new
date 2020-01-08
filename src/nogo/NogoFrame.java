@@ -89,7 +89,7 @@ public class NogoFrame extends JFrame {
                 return;
             }
             repaint();
-
+            // TODO This doesnt work for two ai's
             if(!allHuman)
                 if((allAi && board.cPlayer == 1) || board.cPlayer != humanPlayer)
                     aiPlayer1.getMove(board.clone());
