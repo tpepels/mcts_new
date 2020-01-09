@@ -76,6 +76,16 @@ public class Board implements IBoard {
     }
 
     @Override
+    public int getMoveId(int[] move) {
+        return move[0] + (move[1] * size);
+    }
+
+    @Override
+    public int getMaxMoveId() {
+        return size * size;
+    }
+
+    @Override
     public IBoard clone() {
         Board newBoard = new Board(size);
         newBoard.nMoves = nMoves;

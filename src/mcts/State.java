@@ -9,8 +9,9 @@ public class State {
 
     public static float INF = 999999;
     public long hash;
-    public int visits = 0, lastVisit = 0;
+    public int visits = 0, lastVisit = 0, RAVEVisits = 0;
     private double[] imValue = {-INF, -INF};
+    private double[] RAVEvalue = {0, 0};
     private double[] sums = {0, 0};
     public short solvedPlayer = 0;
     public boolean visited = false;
@@ -56,25 +57,40 @@ public class State {
         visited = true;
         if (solvedPlayer == 0) { // Position is not solved, return mean
             if (visits > 0)
-                return (getSums()[player - 1] - getSums()[(3-player) -1]) / visits;
+                return (sums[player - 1] - sums[(3 - player) - 1]) / visits;
             else
                 return 0;
         } else    // Position is solved, return inf
             return (player == solvedPlayer) ? INF : -INF;
     }
 
-    public void setImValue(double val, int player) {
-        imValue[player - 1] = val;
+    public void updateRAVE(double[] values) {
+        RAVEvalue[0] += values[0];
+        RAVEvalue[1] += values[1];
+        RAVEVisits++;
     }
 
-    public double getImValue(int player) {
-        return imValue[player - 1];
+    public double getRAVE(int player) {
+        if (RAVEVisits > 0)
+            return (RAVEvalue[player - 1] - RAVEvalue[(3 - player) - 1]) / RAVEVisits;
+        else
+            return 0;
+    }
+
+    public void setImValue(double[] val) {
+        imValue[0] = val[0];
+        imValue[1] = val[1];
+    }
+
+    public double[] getImValue() {
+        return imValue;
     }
 
     public void setSolved(int player) {
         visited = true;
         if (solvedPlayer > 0 && player != solvedPlayer)
             throw new RuntimeException("setSolved with different player!");
+
         this.solvedPlayer = (short) player;
     }
 
@@ -91,11 +107,16 @@ public class State {
     public String toString() {
         if (solvedPlayer == 0) {
             String str = "val1: " + df2.format(getMean(1)) + " val2: " + df2.format(getMean(2)) + "  n: " + visits;
-            str += " ::  im1: " + df2.format(imValue[0]);
-            str += "  im2: " + df2.format(imValue[1]);
+            if (imValue[0] != -INF && imValue[1] != -INF) {
+                str += " ::  im1: " + df2.format(imValue[0]);
+                str += "  im2: " + df2.format(imValue[1]);
+            }
             if (simpleRegression != null) {
                 str += " ::  reg1: " + getRegressionValue(1, 1);
                 str += "  reg2: " + getRegressionValue(1, 2);
+            }
+            if (RAVEVisits > 0) {
+                str += " :: RAVE 1: " + df2.format(getRAVE(1)) + " RAVE 2: " + df2.format(getRAVE(2));
             }
             return str;
         } else

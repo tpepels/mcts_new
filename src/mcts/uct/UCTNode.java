@@ -62,7 +62,7 @@ public class UCTNode {
         assert board.hash() == hash : "Board hash is incorrect";
         assert board.getPlayerToMove() == player : "Incorrect player to move";
         // TODO Build in some more assertions here
-        // TODO RAVE AND MAST for Atarigo
+        // TODO MAST for Atarigo
         UCTNode child = null;
         // First add some leafs if required
         if (!expanded)
@@ -79,17 +79,34 @@ public class UCTNode {
         // (Solver) Check for proven win / loss / draw
         if (!child.isSolved()) {
             // Execute the move represented by the child
-            if (!isTerminal())
+            if (!isTerminal()) {
                 board.doMove(child.move);
+                //
+                if (options.RAVE) {
+                    options.insertRAVE(board.getMoveId(child.move), player);
+                }
+            }
             // When a leaf is reached return the result of the playout
             if (!child.simulated || isTerminal()) {
                 result = child.playOut(board); // WARN a single copy of the board is used
                 child.updateStats(result);
                 child.simulated = true;
-            } else
+            } else {
                 result = child.MCTS(board, depth + 1);
+                // Update the RAVE value if this move was played
+                if (!child.isSolved() && options.RAVE) {
+                    for (UCTNode c : children) {
+                        if (c.equals(child)) // No need to update the selected child, only siblings
+                            continue;
 
-            updateStats(result);
+                        if (options.getRAVE(board.getMoveId(c.move), player))
+                            c.updateRAVE(result);
+                    }
+                }
+            }
+            //
+            //if (!child.isSolved())
+                updateStats(result);
             // For displaying the time-series charts
             if (options.debug && depth == 0)
                 child.timeSeries.add(child.getValue(player));
@@ -114,11 +131,11 @@ public class UCTNode {
             // Backprop a win
             result = new double[2];
             result[player - 1] = 1;
-            result[(3 - player) - 1] = -1;
+            result[(3 - player) - 1] = 0;
             return result;
         } else if (solvedChild != null && solvedChild.getValue(player) == -State.INF) {
             result = new double[2];
-            result[player - 1] = -1;
+            result[player - 1] = 0;
             result[(3 - player) - 1] = 1;
             // Check if all children are a proven loss
             for (UCTNode c : children) {
@@ -132,6 +149,7 @@ public class UCTNode {
             return result;
         }
         assert (result[0] > Integer.MIN_VALUE) && (result[1] > Integer.MIN_VALUE) : "Result not initialized";
+
         return result;
     }
 
@@ -149,7 +167,7 @@ public class UCTNode {
             return null;
 
         int[] move;
-        double best_imVal = -State.INF;
+        double[] best_imVal = {-State.INF, -State.INF};
         // Add all moves as children to the current node
         for (int i = 0; i < moves.size(); i++) {
             move = moves.get(i);
@@ -170,28 +188,30 @@ public class UCTNode {
                 if (winner == IBoard.P1 || winner == IBoard.P2) {
                     if (winner == player)
                         winNode = child;
+
                     child.setSolved(winner);
                 }
             }
 
             // implicit minimax
             if (options.imm) {
-                double imVal;
+                double[] imVal = new double[2];
                 if (child.state == null) {
-                    imVal = tempBoard.evaluate(player);
-                    child.setImValue(imVal, player);
-                    child.setImValue(-imVal, (3 - player));
+                    imVal[player - 1] = tempBoard.evaluate(player);
+                    imVal[(3 - player) - 1] = -imVal[player - 1];
+                    child.setImValue(imVal);
                 } else // IM Value was already determined elsewhere in the tree
-                    imVal = child.getImValue(player);
+                    imVal = child.getImValue();
 
-                if (imVal > best_imVal)
+                if (imVal[player-1] > best_imVal[player - 1])
                     best_imVal = imVal;
             }
             children.add(child);
         }
         expanded = true;
-        if (options.imm)
-            setImValue(best_imVal, player);
+        if (options.imm) {
+            setImValue(best_imVal);
+        }
         // If one of the nodes is a win, return it.
         return winNode;
     }
@@ -206,7 +226,7 @@ public class UCTNode {
         if (options.imm) {
             double val;
             for (UCTNode c : children) {
-                val = c.getImValue(player);
+                val = c.getImValue()[player-1];
                 if (val > maxIm)
                     maxIm = val;
                 if (val < minIm)
@@ -236,8 +256,13 @@ public class UCTNode {
 
                 // Implicit minimax
                 if (options.imm && minIm != maxIm) {
-                    double imVal = (c.getImValue(player) - minIm) / (maxIm - minIm);
+                    double imVal = (c.getImValue()[player-1] - minIm) / (maxIm - minIm);
                     avgValue = (1. - options.imAlpha) * avgValue + (options.imAlpha * imVal);
+                }
+
+                if (options.RAVE && c.getVisits() > 0) {
+                    double beta = Math.sqrt(options.k / ((3 * c.getVisits()) + options.k));
+                    avgValue = beta * c.getRAVE(player) + ((1 - beta) * avgValue);
                 }
 
                 // Compute the uct value with the (new) average value
@@ -265,12 +290,17 @@ public class UCTNode {
             if (moves.size() == 0)
                 break;
             move = moves.get(Options.r.nextInt(moves.size()));
+
+            if (options.RAVE) // Insert the rave move before the play is made to get the correct player to move
+                options.insertRAVE(board.getMoveId(move), board.getPlayerToMove());
+
             board.doMove(move);
             winner = board.checkWin();
             nMoves++;
             // Interrupt playout for early evaluation
             if (winner == IBoard.NONE_WIN && options.earlyTerm && nMoves == options.termDepth)
                 interrupted = true;
+
         } while (winner == IBoard.NONE_WIN && !interrupted);
 
         double[] score = {0, 0};
@@ -291,7 +321,7 @@ public class UCTNode {
         return score;
     }
 
-    public UCTNode getBestChild(IBoard board) {
+    public UCTNode getBestChild() {
         if (children == null)
             return null;
         double max = Double.NEGATIVE_INFINITY, value;
@@ -321,16 +351,23 @@ public class UCTNode {
         //
         // implicit minimax backups
         if (options.imm && children != null) {
-            double bestVal = Integer.MIN_VALUE, oppVal = Integer.MIN_VALUE;
+            double[] bestVal = {Integer.MIN_VALUE, Integer.MIN_VALUE};
+
+            // TODO Check if this should minimize or maximize
             for (UCTNode c : children) {
-                if (c.getImValue(player) > bestVal) {
-                    bestVal = c.getImValue(player);
-                    oppVal = c.getImValue(3 - player);
+                if (c.getImValue()[player-1] > bestVal[player-1]) {
+                    bestVal = c.getImValue();
                 }
             }
-            setImValue(bestVal, player); // view of parent
-            setImValue(oppVal, 3 - player);
+            setImValue(bestVal);
         }
+    }
+
+    private void updateRAVE(double[] values) {
+        if (state == null)
+            state = tt.getState(hash, false);
+
+        state.updateRAVE(values);
     }
 
     private void setSolved(int player) {
@@ -345,23 +382,24 @@ public class UCTNode {
             state = tt.getState(hash, true);
         if (state == null)
             return false;
+
         return state.isSolved();
     }
 
-    private void setImValue(double imValue, int player) {
+    private void setImValue(double[] imValue) {
         if (state == null)
             state = tt.getState(hash, false);
 
-        if (state.getImValue(player) == -State.INF)
-            state.setImValue(imValue, player);
+        state.setImValue(imValue);
     }
 
-    private double getImValue(int player) {
+    private double[] getImValue() {
         if (state == null)
             state = tt.getState(hash, true);
         if (state == null)
-            return -State.INF;
-        return state.getImValue(player);
+            return new double[]{-State.INF, -State.INF};
+
+        return state.getImValue();
     }
 
     /**
@@ -372,7 +410,16 @@ public class UCTNode {
             state = tt.getState(hash, true);
         if (state == null)
             return 0;
+
         return state.getMean(player);
+    }
+
+    public double getRAVE(int player) {
+        if (state == null)
+            state = tt.getState(hash, true);
+        if (state == null)
+            return 0;
+        return state.getRAVE(player);
     }
 
     /**
@@ -396,7 +443,9 @@ public class UCTNode {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(move[0]).append(".").append(move[1]).append(" ");
-        sb.append(state.toString());
+        if (state != null)
+            sb.append(state.toString());
+
         return sb.toString();
     }
 

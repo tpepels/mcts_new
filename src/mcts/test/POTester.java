@@ -10,6 +10,7 @@ public class POTester implements AIPlayer {
     private int[] bestMove;
     private static final DecimalFormat df2 = new DecimalFormat("###,##0.0");
     private Options options;
+    private IBoard board;
 
     @Override
     public void getMove(IBoard board) {
@@ -62,6 +63,17 @@ public class POTester implements AIPlayer {
     }
 
     public void setMoveCallback(MoveCallback moveCallback) {}
+
+    @Override
+    public void setBoard(IBoard board) {
+        this.board = board;
+    }
+
+    @Override
+    public void run() {
+        assert board != null : "Set board first";
+        getMove(board);
+    }
 
     private class moveComparator implements Comparator<int[]> {
 

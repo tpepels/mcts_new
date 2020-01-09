@@ -28,4 +28,44 @@ public class Options {
     public boolean regression = false; // Whether to include the regression term in the UCT value
     public int regForecastSteps = 1; // Number of regression steps to forecast into the future
     public double regAlpha = 0.1;
+    //
+    public boolean RAVE = false;
+    public double k = 500;
+    public boolean[][] RAVEMoves;
+
+    public void resetRAVE(int maxId) {
+        RAVEMoves = new boolean[2][maxId];
+    }
+
+    public void insertRAVE(int id, int player) {
+        RAVEMoves[player - 1][id] = true;
+    }
+
+    public boolean getRAVE(int id, int player) {
+        return RAVEMoves[player - 1][id];
+    }
+
+    //
+    private double[] histVal, histVis;
+    public boolean MAST = false;
+    public double epsilon = .05;
+
+    public void resetMAST(int maxId) {
+        histVal = new double[maxId];
+        histVis = new double[maxId];
+    }
+
+    public double getMASTValue(int player, int id) {
+        if (player == 1)
+            return histVal[id] / histVis[id];
+        else
+            return -histVal[id] / histVis[id];
+    }
+
+    public void updateMAST(int player, int moveId, double value) {
+        if (player == 1)
+            histVal[moveId] += value;
+        else
+            histVal[moveId] -= value;
+    }
 }

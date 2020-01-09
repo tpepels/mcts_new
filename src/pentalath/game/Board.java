@@ -214,6 +214,16 @@ public class Board implements IBoard {
     }
 
     @Override
+    public int getMoveId(int[] move) {
+        return move[0];
+    }
+
+    @Override
+    public int getMaxMoveId() {
+        return SIZE * 2;
+    }
+
+    @Override
     public MoveList getPlayoutMoves(boolean heuristics) { //TODO, I think this still returns illegal moves
         int count = freeSquares;
         poMoves.clear();

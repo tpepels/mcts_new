@@ -21,6 +21,7 @@ public class UCTPlayer implements AIPlayer {
     private static final DecimalFormat df2 = new DecimalFormat("###,##0.000");
     //
     private Options options;
+    public IBoard board;
 
     @Override
     public void getMove(IBoard board) {
@@ -31,7 +32,7 @@ public class UCTPlayer implements AIPlayer {
 
         int simulations = 0;
         long startT = System.currentTimeMillis();
-
+        options.resetMAST(board.getMaxMoveId());
         if (!options.fixedSimulations) {
             long endTime = System.currentTimeMillis() + options.time;
             // Run the MCTS algorithm while time allows it
@@ -39,10 +40,10 @@ public class UCTPlayer implements AIPlayer {
                 simulations++;
                 if (System.currentTimeMillis() >= endTime)
                     break;
+                options.resetRAVE(board.getMaxMoveId());
                 // Make one simulation from root to leaf.
                 root.MCTS(board.clone(), 0);
                 // Check if the root is proven
-                // TODO Check is this works
                 if (root.isSolved())
                     break; // Break if you find a winning move
             }
@@ -50,17 +51,16 @@ public class UCTPlayer implements AIPlayer {
             // Run as many simulations as allowed
             while (simulations < options.nSimulations) {
                 simulations++;
+                options.resetRAVE(board.getMaxMoveId());
                 // Make one simulation from root to leaf.
-                // Note: stats at the root node are in view of the root player (also never used)
                 root.MCTS(board.clone(), 0);
-                // TODO Check if this works
                 if (root.isSolved())
                     break; // Break if you find a winning move
             }
         }
         long endT = System.currentTimeMillis();
         // Return the best move found
-        UCTNode bestChild = root.getBestChild(board);
+        UCTNode bestChild = root.getBestChild();
         bestMove = bestChild.move;
         // Pack the transpositions
         int removed = tt.pack(1);
@@ -87,6 +87,7 @@ public class UCTPlayer implements AIPlayer {
         }
         // Set the root to the best child, so in the next move, the opponent's move can become the new root
         root = null;
+        this.board = null;
 
         if(moveCallback != null)
             moveCallback.makeMove(bestMove);
@@ -126,6 +127,16 @@ public class UCTPlayer implements AIPlayer {
 
     public void setMoveCallback(MoveCallback moveCallback) {
         this.moveCallback = moveCallback;
+    }
+
+    public void setBoard(IBoard board) {
+        this.board = board;
+    }
+
+    @Override
+    public void run() {
+        assert board != null : "Set the board first!";
+        getMove(this.board);
     }
 }
 

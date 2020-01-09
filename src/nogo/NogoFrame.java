@@ -9,9 +9,7 @@ import nogo.game.Board;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.*;
 
 public class NogoFrame extends JFrame {
     private static final long serialVersionUID = 1L;
@@ -21,33 +19,32 @@ public class NogoFrame extends JFrame {
         setResizable(false);
         setVisible(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        nogoPanel = new NogoPanel();
+        nogoPanel = new NogoPanel(this);
         setContentPane(nogoPanel);
         int size = 2 * nogoPanel.offset + ((8) * nogoPanel.squareSize);
         setSize(size, size + nogoPanel.squareSize);
-        nogoPanel.startGame();
+        this.addKeyListener(nogoPanel);
+        nogoPanel.aiMove();
     }
 
     public static void main(String[] args) {
         (new NogoFrame()).setVisible(true);
     }
 
-    private class NogoPanel extends JPanel implements MouseListener, MouseMotionListener, MoveCallback {
+    private class NogoPanel extends JPanel implements MouseListener, MouseMotionListener, MoveCallback, KeyListener {
         private int humanPlayer = 2;
         private boolean allHuman = false, allAi = true;
         private final Board board;
+        private final JFrame frame;
 
-        int offset = 40, squareSize = 50;
+        int offset = 40, squareSize = 50, winner = Board.NONE_WIN;
         private MoveList legalMoves;
         AIPlayer aiPlayer1, aiPlayer2;
+        boolean aiThinking = true;
 
-        public void startGame() {
-            if(!allHuman)
-                aiPlayer1.getMove(board.clone());
-        }
-
-        public NogoPanel() {
+        public NogoPanel(JFrame frame) {
             board = new Board(9);
+            this.frame = frame;
             board.initialize();
             legalMoves = board.getExpandMoves();
             Options.debug = true;
@@ -56,45 +53,58 @@ public class NogoFrame extends JFrame {
             aiPlayer1 = new UCTPlayer();
             aiPlayer1.setOptions(options1);
             options1.fixedSimulations = true;
-            options1.nSimulations = 100000;
-            options1.imm = true;
+            options1.nSimulations = 50000;
+            options1.RAVE = true;
 
             Options options2 = new Options();
             aiPlayer2 = new UCTPlayer();
-            aiPlayer2.setOptions(options1);
+            aiPlayer2.setOptions(options2);
             options2.fixedSimulations = true;
-            options2.nSimulations = 100000;
-            options2.imm = true;
+            options2.nSimulations = 50000;
 
             aiPlayer1.setMoveCallback(this);
             aiPlayer2.setMoveCallback(this);
             addMouseListener(this);
             addMouseMotionListener(this);
 
-            if(allHuman)
+            if (allHuman)
                 humanPlayer = 1;
+        }
+
+        private void aiMove() {
+            if (!allHuman && winner == Board.NONE_WIN) {
+                if ((allAi && board.cPlayer == 1) || board.cPlayer != humanPlayer) {
+                    aiThinking = true;
+                    frame.setTitle("AI 1 Thinking .....");
+                    Thread t = new Thread(aiPlayer1);
+                    aiPlayer1.setBoard(board.clone());
+                    t.run();
+                } else if ((allAi && board.cPlayer == 2) || board.cPlayer != humanPlayer) {
+                    aiThinking = true;
+                    frame.setTitle("AI 2 Thinking .....");
+                    Thread t = new Thread(aiPlayer2);
+                    aiPlayer2.setBoard(board.clone());
+                    t.run();
+                }
+            }
         }
 
         @Override
         public void makeMove(int[] move) {
-            int winner = board.checkWin();
+            winner = board.checkWin();
             if (winner == Board.NONE_WIN)
                 board.doMove(move);
 
             legalMoves = board.getExpandMoves();
-
-            winner = board.checkWin();
-            if(winner != Board.NONE_WIN) {
-                System.out.println("Winner is " + board.checkWin());
-                return;
-            }
             repaint();
-            // TODO This doesnt work for two ai's
-            if(!allHuman)
-                if((allAi && board.cPlayer == 1) || board.cPlayer != humanPlayer)
-                    aiPlayer1.getMove(board.clone());
-                else if((allAi && board.cPlayer == 2) || board.cPlayer != humanPlayer)
-                    aiPlayer2.getMove(board.clone());
+            winner = board.checkWin();
+            if (winner != Board.NONE_WIN) {
+                frame.setTitle("Winner is " + board.checkWin());
+            } else {
+                String player = board.cPlayer == 1 ? "black" : "white";
+                frame.setTitle(player + " to move");
+            }
+            aiThinking = false;
         }
 
         public void paint(Graphics g) {
@@ -170,11 +180,11 @@ public class NogoFrame extends JFrame {
 
         @Override
         public void mouseClicked(MouseEvent arg0) {
-            if(!allAi && board.cPlayer == humanPlayer) {
+            if (!allAi && board.cPlayer == humanPlayer) {
                 for (int i = 0; i < legalMoves.size(); i++) {
                     if (legalMoves.get(i)[0] == boardCol && legalMoves.get(i)[1] == boardRow) {
                         makeMove(legalMoves.get(i));
-                        if(allHuman)
+                        if (allHuman)
                             humanPlayer = 3 - humanPlayer;
                     }
                 }
@@ -202,6 +212,24 @@ public class NogoFrame extends JFrame {
         public void mouseExited(MouseEvent e) {
             boardCol = -1;
             boardRow = -1;
+        }
+
+        @Override
+        public void keyTyped(KeyEvent e) {
+
+        }
+
+        @Override
+        public void keyPressed(KeyEvent e) {
+            if(e.getKeyCode() == KeyEvent.VK_SPACE) {
+                if(!aiThinking)
+                    aiMove();
+            }
+        }
+
+        @Override
+        public void keyReleased(KeyEvent e) {
+
         }
     }
 }

@@ -44,4 +44,8 @@ public interface IBoard {
     MoveList getPlayoutMoves(boolean heuristics);
 
     MoveList getExpandMoves();
+
+    int getMoveId(int[] move);
+
+    int getMaxMoveId();
 }

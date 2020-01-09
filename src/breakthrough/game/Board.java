@@ -28,7 +28,7 @@ public class Board implements IBoard {
     private int nPieces1, progress1, lorentzPV1, nPieces2, progress2, lorentzPV2;
     private long zbHash = 0;
 
-    MoveList moveList = new MoveList(48);
+    MoveList moveList = new MoveList(96);
     MoveList captures = new MoveList(32);
 
     public void initialize() {
@@ -168,6 +168,16 @@ public class Board implements IBoard {
             generateMovesForPiece(playerPiece, moveMode, moveList, false);
         }
         return moveList;
+    }
+
+    @Override
+    public int getMoveId(int[] move) {
+        return (move[0] * 64 + move[1]);
+    }
+
+    @Override
+    public int getMaxMoveId() {
+        return 4095;
     }
 
     @Override
