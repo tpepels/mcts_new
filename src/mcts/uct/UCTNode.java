@@ -80,11 +80,13 @@ public class UCTNode {
         if (!child.isSolved()) {
             // Execute the move represented by the child
             if (!isTerminal()) {
-                board.doMove(child.move);
                 //
-                if (options.RAVE) {
-                    options.insertRAVE(board.getMoveId(child.move), player);
-                }
+                if (options.RAVE)
+                    options.addRAVEMove(board.getMoveId(child.move), board.getPlayerToMove());
+                if (options.MAST)
+                    options.addMASTMove(board.getPlayerToMove(), board.getMoveId(child.move));
+
+                board.doMove(child.move);
             }
             // When a leaf is reached return the result of the playout
             if (!child.simulated || isTerminal()) {
@@ -99,14 +101,14 @@ public class UCTNode {
                         if (c.equals(child)) // No need to update the selected child, only siblings
                             continue;
 
-                        if (options.getRAVE(board.getMoveId(c.move), player))
+                        if (options.getRAVEValue(board.getMoveId(c.move), player))
                             c.updateRAVE(result);
                     }
                 }
             }
             //
             //if (!child.isSolved())
-                updateStats(result);
+            updateStats(result);
             // For displaying the time-series charts
             if (options.debug && depth == 0)
                 child.timeSeries.add(child.getValue(player));
@@ -203,7 +205,7 @@ public class UCTNode {
                 } else // IM Value was already determined elsewhere in the tree
                     imVal = child.getImValue();
 
-                if (imVal[player-1] > best_imVal[player - 1])
+                if (imVal[player - 1] > best_imVal[player - 1])
                     best_imVal = imVal;
             }
             children.add(child);
@@ -226,7 +228,7 @@ public class UCTNode {
         if (options.imm) {
             double val;
             for (UCTNode c : children) {
-                val = c.getImValue()[player-1];
+                val = c.getImValue()[player - 1];
                 if (val > maxIm)
                     maxIm = val;
                 if (val < minIm)
@@ -256,7 +258,7 @@ public class UCTNode {
 
                 // Implicit minimax
                 if (options.imm && minIm != maxIm) {
-                    double imVal = (c.getImValue()[player-1] - minIm) / (maxIm - minIm);
+                    double imVal = (c.getImValue()[player - 1] - minIm) / (maxIm - minIm);
                     avgValue = (1. - options.imAlpha) * avgValue + (options.imAlpha * imVal);
                 }
 
@@ -279,24 +281,44 @@ public class UCTNode {
     }
 
     private double[] playOut(IBoard board) {
-        int winner = board.checkWin(), nMoves = 0;
+        int winner = board.checkWin(), nMoves = 0, moveIndex;
         assert winner == IBoard.NONE_WIN || winner == IBoard.DRAW : "Board in terminal position in playout.";
         int[] move;
         boolean interrupted = false;
         MoveList moves;
+        double mastMax = Double.NEGATIVE_INFINITY, mastVal = 0;
         do {
             moves = board.getPlayoutMoves(options.heuristics);
             // No more moves to be made
             if (moves.size() == 0)
                 break;
-            move = moves.get(Options.r.nextInt(moves.size()));
 
-            if (options.RAVE) // Insert the rave move before the play is made to get the correct player to move
-                options.insertRAVE(board.getMoveId(move), board.getPlayerToMove());
+            moveIndex = Options.r.nextInt(moves.size());
+
+            if (options.MAST && Options.r.nextDouble() < (1. - options.epsilon)) {
+                mastMax = Double.NEGATIVE_INFINITY;
+                // Select the move with the highest MAST value
+                for (int i = 0; i < moves.size(); i++) {
+                    mastVal = options.getMASTValue(board.getPlayerToMove(), board.getMoveId(moves.get(i)));
+                    // If bigger, we have a winner, if equal, flip a coin
+                    if (mastVal > mastMax || (mastVal == mastMax && Options.r.nextDouble() < .5)) {
+                        mastMax = mastVal;
+                        moveIndex = i;
+                    }
+                }
+            }
+
+            move = moves.get(moveIndex);
+
+            if (options.RAVE) // Insert the rave and mast move before the play is made to get the correct player to move
+                options.addRAVEMove(board.getMoveId(move), board.getPlayerToMove());
+            if (options.MAST)
+                options.addMASTMove(board.getPlayerToMove(), board.getMoveId(move));
 
             board.doMove(move);
             winner = board.checkWin();
             nMoves++;
+
             // Interrupt playout for early evaluation
             if (winner == IBoard.NONE_WIN && options.earlyTerm && nMoves == options.termDepth)
                 interrupted = true;
@@ -317,6 +339,9 @@ public class UCTNode {
             }
         } else if (winner != IBoard.DRAW)
             score[winner - 1] = 1;
+
+        if(options.MAST)
+            options.updateMASTMoves(score);
 
         return score;
     }
@@ -355,7 +380,7 @@ public class UCTNode {
 
             // TODO Check if this should minimize or maximize
             for (UCTNode c : children) {
-                if (c.getImValue()[player-1] > bestVal[player-1]) {
+                if (c.getImValue()[player - 1] > bestVal[player - 1]) {
                     bestVal = c.getImValue();
                 }
             }
