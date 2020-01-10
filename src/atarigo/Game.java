@@ -1,9 +1,9 @@
-package nogo;
+package atarigo;
 
 import framework.AIPlayer;
 import framework.Options;
 import mcts.uct.UCTPlayer;
-import nogo.game.Board;
+import atarigo.game.Board;
 
 public class Game {
 

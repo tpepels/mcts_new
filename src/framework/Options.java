@@ -9,7 +9,7 @@ public class Options {
 
     // Various experimental variables
     public int nSamples = 1; // The number of samples per UCT simulation
-    public double c = 0.4; // The UCT constant
+    public double c = 0.8; // The UCT constant
     public boolean fixedSimulations = false; // Whether to do a timed run or a run limited by a number of simulations
     public int time = 5000; // Time in ms to run UCT
     public int nSimulations = 10000; // The number of UCT simulations per turn
@@ -42,7 +42,7 @@ public class Options {
         RAVEMoves[player - 1][id] = true;
     }
 
-    public boolean getRAVEValue(int id, int player) {
+    public boolean isRAVEMove(int id, int player) {
         return RAVEMoves[player - 1][id];
     }
 

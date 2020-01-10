@@ -1,21 +1,21 @@
-package nogo;
+package atarigo;
 
 import framework.AIPlayer;
 import framework.MoveCallback;
 import framework.MoveList;
 import framework.Options;
 import mcts.uct.UCTPlayer;
-import nogo.game.Board;
+import atarigo.game.Board;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-public class NogoFrame extends JFrame {
+public class AtariGoFrame extends JFrame {
     private static final long serialVersionUID = 1L;
     public static NogoPanel nogoPanel;
 
-    public NogoFrame() {
+    public AtariGoFrame() {
         setResizable(false);
         setVisible(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -28,7 +28,7 @@ public class NogoFrame extends JFrame {
     }
 
     public static void main(String[] args) {
-        (new NogoFrame()).setVisible(true);
+        (new AtariGoFrame()).setVisible(true);
     }
 
     private class NogoPanel extends JPanel implements MouseListener, MouseMotionListener, MoveCallback, KeyListener {
@@ -40,23 +40,25 @@ public class NogoFrame extends JFrame {
         int offset = 40, squareSize = 50, winner = Board.NONE_WIN;
         private MoveList legalMoves;
         AIPlayer aiPlayer1, aiPlayer2;
+        Options options1, options2;
         boolean aiThinking = true;
 
         public NogoPanel(JFrame frame) {
-            board = new Board(9);
+            board = new Board(7);
             this.frame = frame;
             board.initialize();
             legalMoves = board.getExpandMoves();
             Options.debug = true;
 
-            Options options1 = new Options();
+            options1 = new Options();
             aiPlayer1 = new UCTPlayer();
             aiPlayer1.setOptions(options1);
             options1.fixedSimulations = true;
             options1.nSimulations = 50000;
             options1.RAVE = true;
+            options1.MAST = true;
 
-            Options options2 = new Options();
+            options2 = new Options();
             aiPlayer2 = new UCTPlayer();
             aiPlayer2.setOptions(options2);
             options2.fixedSimulations = true;
@@ -149,17 +151,27 @@ public class NogoFrame extends JFrame {
                 }
             }
 
-            g.setColor(Color.darkGray);
-            for (int i = 0; i < legalMoves.size(); i++) {
-                y = offset + (legalMoves.get(i)[1] * squareSize);
-                x = offset + (legalMoves.get(i)[0] * squareSize);
-                g.fillRect(x - 4, y - 4, 8, 8);
+            if(options1.MAST) {
+                g.setColor(Color.black);
+                for (int i = 0; i < board.size; i++) {
+                    for (int j = 0; j < board.size; j++) {
+                        occ = board.board[j][i];
+                        if (occ != 0)
+                            continue;
+
+                        x = offset + (i * squareSize);
+                        y = offset + (j * squareSize);
+                        String MAST = String.format("%1$,.2f", options1.getMASTValue(1, board.getMoveId(new int[]{i,j})));
+                        g.drawString(MAST,x , y);
+                    }
+                }
             }
 
+            g.setColor(Color.lightGray);
             if (boardCol < board.size && boardRow < board.size) {
                 x = offset + (boardCol * squareSize);
                 y = offset + (boardRow * squareSize);
-                g.setColor(Color.lightGray);
+
                 g.fillOval(x - 10, y - 10, 20, 20);
             }
         }

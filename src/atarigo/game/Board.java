@@ -1,4 +1,4 @@
-package nogo.game;
+package atarigo.game;
 
 import framework.IBoard;
 import framework.MoveList;

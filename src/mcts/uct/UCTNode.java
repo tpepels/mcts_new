@@ -19,7 +19,8 @@ public class UCTNode {
     public final int[] move;
     private boolean expanded = false, simulated = false;
     private List<UCTNode> children;
-
+    private double[] RAVEvalue = {0, 0};
+    private double RAVEVisits = 0;
     // For debug only
     public String boardString;
     public ArrayList<Double> timeSeries;
@@ -62,7 +63,6 @@ public class UCTNode {
         assert board.hash() == hash : "Board hash is incorrect";
         assert board.getPlayerToMove() == player : "Incorrect player to move";
         // TODO Build in some more assertions here
-        // TODO MAST for Atarigo
         UCTNode child = null;
         // First add some leafs if required
         if (!expanded)
@@ -83,6 +83,7 @@ public class UCTNode {
                 //
                 if (options.RAVE)
                     options.addRAVEMove(board.getMoveId(child.move), board.getPlayerToMove());
+
                 if (options.MAST)
                     options.addMASTMove(board.getPlayerToMove(), board.getMoveId(child.move));
 
@@ -101,7 +102,7 @@ public class UCTNode {
                         if (c.equals(child)) // No need to update the selected child, only siblings
                             continue;
 
-                        if (options.getRAVEValue(board.getMoveId(c.move), player))
+                        if (options.isRAVEMove(board.getMoveId(c.move), player))
                             c.updateRAVE(result);
                     }
                 }
@@ -133,11 +134,11 @@ public class UCTNode {
             // Backprop a win
             result = new double[2];
             result[player - 1] = 1;
-            result[(3 - player) - 1] = 0;
+            result[(3 - player) - 1] = -1;
             return result;
         } else if (solvedChild != null && solvedChild.getValue(player) == -State.INF) {
             result = new double[2];
-            result[player - 1] = 0;
+            result[player - 1] = -1;
             result[(3 - player) - 1] = 1;
             // Check if all children are a proven loss
             for (UCTNode c : children) {
@@ -211,9 +212,10 @@ public class UCTNode {
             children.add(child);
         }
         expanded = true;
-        if (options.imm) {
+
+        if (options.imm)
             setImValue(best_imVal);
-        }
+
         // If one of the nodes is a win, return it.
         return winNode;
     }
@@ -330,6 +332,7 @@ public class UCTNode {
         if (options.earlyTerm) {
             if (!interrupted) {
                 score[winner - 1] += options.etWv;
+                score[(3 - winner) - 1] -= options.etWv;
             } else {
                 double eval = board.evaluate(1); // TODO - Is it better to include the value of the evaluation here?
                 if (eval > options.etT)
@@ -337,10 +340,12 @@ public class UCTNode {
                 else if (eval < -options.etT)
                     score[1]++;
             }
-        } else if (winner != IBoard.DRAW)
+        } else if (winner != IBoard.DRAW) {
             score[winner - 1] = 1;
+            score[(3 - winner) - 1] = -1;
+        }
 
-        if(options.MAST)
+        if (options.MAST)
             options.updateMASTMoves(score);
 
         return score;
@@ -369,15 +374,16 @@ public class UCTNode {
     }
 
     private void updateStats(double[] value) {
+        assert value[0] > Integer.MIN_VALUE && value[1] > Integer.MIN_VALUE : "Wrong values in updateStats";
+
         if (state == null)
             state = tt.getState(hash, false);
         //
         state.updateStats(value, options.regression);
-        //
+
         // implicit minimax backups
         if (options.imm && children != null) {
             double[] bestVal = {Integer.MIN_VALUE, Integer.MIN_VALUE};
-
             // TODO Check if this should minimize or maximize
             for (UCTNode c : children) {
                 if (c.getImValue()[player - 1] > bestVal[player - 1]) {
@@ -386,13 +392,6 @@ public class UCTNode {
             }
             setImValue(bestVal);
         }
-    }
-
-    private void updateRAVE(double[] values) {
-        if (state == null)
-            state = tt.getState(hash, false);
-
-        state.updateRAVE(values);
     }
 
     private void setSolved(int player) {
@@ -439,12 +438,17 @@ public class UCTNode {
         return state.getMean(player);
     }
 
+    public void updateRAVE(double[] values) {
+        RAVEvalue[0] += values[0];
+        RAVEvalue[1] += values[1];
+        RAVEVisits++;
+    }
+
     public double getRAVE(int player) {
-        if (state == null)
-            state = tt.getState(hash, true);
-        if (state == null)
+        if (RAVEVisits > 0)
+            return RAVEvalue[player - 1] / RAVEVisits;
+        else
             return 0;
-        return state.getRAVE(player);
     }
 
     /**
@@ -468,16 +472,28 @@ public class UCTNode {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(move[0]).append(".").append(move[1]).append(" ");
+
         if (state != null)
             sb.append(state.toString());
 
+        if (RAVEVisits > 0) {
+            sb.append(" :: RAVE 1: ").append(State.df2.format(getRAVE(1))).append(" RAVE 2: ").append(State.df2.format(getRAVE(2)));
+        }
         return sb.toString();
     }
 
     public String toString(IBoard board) {
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(board.getMoveString(move));
         if (state != null)
-            return board.getMoveString(move) + " ::  " + state.toString();
+            sb.append(" :: ").append(state.toString());
         else
-            return board.getMoveString(move) + " no state";
+            sb.append(" :: ").append(" no state");
+        if (RAVEVisits > 0) {
+            sb.append(" :: RAVE 1: ").append(State.df2.format(getRAVE(1))).append(" RAVE 2: ").append(State.df2.format(getRAVE(2)));
+        }
+
+        return sb.toString();
     }
 }

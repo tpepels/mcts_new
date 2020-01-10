@@ -9,9 +9,8 @@ public class State {
 
     public static float INF = 999999;
     public long hash;
-    public int visits = 0, lastVisit = 0, RAVEVisits = 0;
+    public int visits = 0, lastVisit = 0;
     private double[] imValue = {-INF, -INF};
-    private double[] RAVEvalue = {0, 0};
     private double[] sums = {0, 0};
     public short solvedPlayer = 0;
     public boolean visited = false;
@@ -31,7 +30,7 @@ public class State {
         getSums()[0] += results[0];
         getSums()[1] += results[1];
 
-        this.visits++;
+        visits++;
 
         if (regression) {
             // Start to build regression after n steps, after every N visits reset the regression
@@ -57,24 +56,11 @@ public class State {
         visited = true;
         if (solvedPlayer == 0) { // Position is not solved, return mean
             if (visits > 0)
-                return (sums[player - 1] - sums[(3 - player) - 1]) / visits;
+                return sums[player - 1] / visits;
             else
                 return 0;
         } else    // Position is solved, return inf
             return (player == solvedPlayer) ? INF : -INF;
-    }
-
-    public void updateRAVE(double[] values) {
-        RAVEvalue[0] += values[0];
-        RAVEvalue[1] += values[1];
-        RAVEVisits++;
-    }
-
-    public double getRAVE(int player) {
-        if (RAVEVisits > 0)
-            return (RAVEvalue[player - 1] - RAVEvalue[(3 - player) - 1]) / RAVEVisits;
-        else
-            return 0;
     }
 
     public void setImValue(double[] val) {
@@ -102,7 +88,7 @@ public class State {
         return visits;
     }
 
-    private static final DecimalFormat df2 = new DecimalFormat("###,##0.000");
+    public static final DecimalFormat df2 = new DecimalFormat("###,##0.00");
 
     public String toString() {
         if (solvedPlayer == 0) {
@@ -114,9 +100,6 @@ public class State {
             if (simpleRegression != null) {
                 str += " ::  reg1: " + getRegressionValue(1, 1);
                 str += "  reg2: " + getRegressionValue(1, 2);
-            }
-            if (RAVEVisits > 0) {
-                str += " :: RAVE 1: " + df2.format(getRAVE(1)) + " RAVE 2: " + df2.format(getRAVE(2));
             }
             return str;
         } else
