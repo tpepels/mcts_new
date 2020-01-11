@@ -1,6 +1,7 @@
 package framework;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 
 public class Options {
@@ -31,37 +32,37 @@ public class Options {
     public double regAlpha = 0.1;
     //
     public boolean RAVE = false;
-    public double k = 500;
-    public boolean[][] RAVEMoves;
+    public double k = 10;
+    public int[][] RAVEMoves;
 
     public void resetRAVE(int maxId) {
-        RAVEMoves = new boolean[2][maxId];
+        RAVEMoves = new int[2][maxId];
     }
 
-    public void addRAVEMove(int id, int player) {
-        RAVEMoves[player - 1][id] = true;
+    public void addRAVEMove(int player, int id, int depth) {
+        RAVEMoves[player - 1][id] = depth;
     }
 
-    public boolean isRAVEMove(int id, int player) {
-        return RAVEMoves[player - 1][id];
+    public boolean isRAVEMove(int player, int id, int depth) {
+        return RAVEMoves[player - 1][id] > depth;
     }
-
     //
-    private double[][] histVal, histVis;
-    private ArrayList<Integer>[] moveLists;
+    private double[][] histVal;
+    private int[][] histVis;
+    private List<Integer>[] moveLists;
     public boolean MAST = false;
     public double epsilon = .05;
 
     public void resetMAST(int maxId) {
         histVal = new double[2][maxId];
-        histVis = new double[2][maxId];
-        moveLists = new ArrayList[2];
-        moveLists[0] = new ArrayList<>();
-        moveLists[1] = new ArrayList<>();
+        histVis = new int[2][maxId];
+        moveLists = new LinkedList[2];
+        moveLists[0] = new LinkedList<>();
+        moveLists[1] = new LinkedList<>();
     }
 
     public double getMASTValue(int player, int moveId) {
-        return histVal[player - 1][moveId] / histVis[player - 1][moveId];
+        return histVal[player - 1][moveId] / (double)histVis[player - 1][moveId];
     }
 
     public void addMASTMove(int player, int moveId) {

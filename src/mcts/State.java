@@ -5,52 +5,46 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
 import java.text.DecimalFormat;
 
 public class State {
-    public static final int REG_PLAYER = 1; // Regression line is always in view of this player
-
-    public static float INF = 999999;
     public long hash;
     public int visits = 0, lastVisit = 0;
-    private double[] imValue = {-INF, -INF};
+    private double[] imValue = {Integer.MIN_VALUE, Integer.MIN_VALUE};
     private double[] sums = {0, 0};
     public short solvedPlayer = 0;
     public boolean visited = false;
-    public SimpleRegression[] simpleRegression;
-    //
+    public SimpleRegression[] simpleRegression = new SimpleRegression[2];
     public State next = null;
 
     public State(long hash) {
         this.hash = hash;
+        simpleRegression[0] = new SimpleRegression();
+        simpleRegression[1] = new SimpleRegression();
     }
 
     public void updateStats(double[] results, boolean regression) {
+        assert !this.isSolved() : "UpdateStats called on solved position!";
+
         visited = true;
-        if (solvedPlayer != 0)
-            throw new RuntimeException("updateStats called on solved position!");
-
-        getSums()[0] += results[0];
-        getSums()[1] += results[1];
-
+        sums[0] += results[0];
+        sums[1] += results[1];
         visits++;
 
         if (regression) {
-            // Start to build regression after n steps, after every N visits reset the regression
-            if (simpleRegression == null || visits % 1000 == 10) {
-                simpleRegression[0] = new SimpleRegression();
-                simpleRegression[1] = new SimpleRegression();
+            if (visits % 100 == 0) { // TODO Check this number or put it in options
+                simpleRegression[0].clear();
+                simpleRegression[1].clear();
             }
-            if (simpleRegression != null) {
-                simpleRegression[0].addData(visits, getMean(0));
-                simpleRegression[1].addData(visits, getMean(1));
-            }
+
+            simpleRegression[0].addData(visits, getMean(0));
+            simpleRegression[1].addData(visits, getMean(1));
         }
     }
 
     public double getRegressionValue(int steps, int player) {
-        if (simpleRegression != null && simpleRegression[player - 1].getN() > 10)
-            return simpleRegression[player - 1].predict(visits + steps);
+        if (simpleRegression[player - 1].getN() > 5)
+            return simpleRegression[player - 1].predict(visits + steps); // WARN Visits + steps is correct :)
         else
-            return Integer.MIN_VALUE;
-    } // TODO Check if it should be visits + steps or just steps...
+            return 0; // Value is captured in calling method
+    }
 
     public double getMean(int player) {
         visited = true;
@@ -60,7 +54,7 @@ public class State {
             else
                 return 0;
         } else    // Position is solved, return inf
-            return (player == solvedPlayer) ? INF : -INF;
+            return (player == solvedPlayer) ? Integer.MAX_VALUE : Integer.MIN_VALUE;
     }
 
     public void setImValue(double[] val) {
@@ -76,7 +70,6 @@ public class State {
         visited = true;
         if (solvedPlayer > 0 && player != solvedPlayer)
             throw new RuntimeException("setSolved with different player!");
-
         this.solvedPlayer = (short) player;
     }
 
@@ -92,21 +85,18 @@ public class State {
 
     public String toString() {
         if (solvedPlayer == 0) {
-            String str = "val1: " + df2.format(getMean(1)) + " val2: " + df2.format(getMean(2)) + "  n: " + visits;
-            if (imValue[0] != -INF && imValue[1] != -INF) {
+            String str = "val1: " + df2.format(getMean(1)) + " val2: " +
+                    df2.format(getMean(2)) + "  n: " + visits;
+            if (imValue[0] != Integer.MIN_VALUE && imValue[1] != Integer.MIN_VALUE) {
                 str += " ::  im1: " + df2.format(imValue[0]);
                 str += "  im2: " + df2.format(imValue[1]);
             }
             if (simpleRegression != null) {
-                str += " ::  reg1: " + getRegressionValue(1, 1);
-                str += "  reg2: " + getRegressionValue(1, 2);
+                str += " ::  reg1: " + df2.format(getRegressionValue(1, 1));
+                str += "  reg2: " + df2.format(getRegressionValue(1, 2));
             }
             return str;
         } else
             return "solved win P" + solvedPlayer;
-    }
-
-    public double[] getSums() {
-        return sums;
     }
 }

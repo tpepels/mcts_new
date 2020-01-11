@@ -30,6 +30,8 @@ public class Board implements IBoard {
 
     MoveList moveList = new MoveList(96);
     MoveList captures = new MoveList(32);
+    MoveList decisive = new MoveList(32);
+    MoveList antiDecisive = new MoveList(32);
 
     public void initialize() {
         board = new int[64];
@@ -183,12 +185,12 @@ public class Board implements IBoard {
     @Override
     public MoveList getPlayoutMoves(boolean heuristics) {
         // Check for decisive / anti-decisive moves
-        if (heuristics && (progress1 > 3 || progress2 > 3) || Options.r.nextDouble() > .95) {
+        if (heuristics && ((progress1 > 3 || progress2 > 3) || Options.r.nextDouble() > .95)) {
             captures.clear();
             getExpandMoves();
             if (progress1 >= 6 || progress2 >= 6) {
-                MoveList decisive = new MoveList(32);
-                MoveList antiDecisive = new MoveList(32);
+                decisive.clear();
+                antiDecisive.clear();
                 for (int i = 0; i < moveList.size(); i++) {
                     int[] move = moveList.get(i);
                     // Decisive / anti-decisive moves

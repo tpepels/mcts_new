@@ -18,12 +18,17 @@ public class Game {
         AIPlayer aiPlayer1 = new UCTPlayer();
         Options options1 = new Options();
         options1.fixedSimulations = true;
-        options1.nSimulations = 30000;
+        options1.nSimulations = 50000;
         options1.heuristics = true;
+        //options1.MAST = true;
+        // options1.RAVE = true;
         aiPlayer1.setOptions(options1);
 
-        AIPlayer aiPlayer2 = new POTester();
+        AIPlayer aiPlayer2 = new UCTPlayer();
         Options options2 = new Options();
+        options2.fixedSimulations = true;
+        options2.nSimulations = 50000;
+        options2.heuristics = true;
         aiPlayer2.setOptions(options2);
 
         AIPlayer aiPlayer;

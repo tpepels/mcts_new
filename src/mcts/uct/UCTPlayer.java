@@ -16,20 +16,16 @@ import java.util.List;
 public class UCTPlayer implements AIPlayer {
     private MoveCallback moveCallback;
     private TransposTable tt = new TransposTable();
-    public UCTNode root;
     private int[] bestMove;
-    private static final DecimalFormat df2 = new DecimalFormat("###,##0.000");
-    //
     private Options options;
+    public UCTNode root;
     public IBoard board;
 
     @Override
     public void getMove(IBoard board) {
         if (options == null)
             throw new RuntimeException("MCTS Options not set.");
-
         root = new UCTNode(board.getPlayerToMove(), options, board.hash(), tt);
-
         int simulations = 0;
         long startT = System.currentTimeMillis();
         options.resetMAST(board.getMaxMoveId());
@@ -66,13 +62,13 @@ public class UCTPlayer implements AIPlayer {
         int removed = tt.pack(1);
 
         // show information on the best move
-        if (options.debug) {
+        if (Options.debug) {
             System.out.println("-------- < UCT Debug > ----------");
             System.out.println("- Player " + board.getPlayerToMove());
             System.out.println("- Best child: " + bestChild.toString(board));
             System.out.println("- Play-outs: " + simulations);
             System.out.println("- Searched for: " + ((endT - startT) / 1000.) + " s.");
-            System.out.println("- " + df2.format((int) Math.round((1000. * simulations) / (endT - startT))) + " playouts per s");
+            System.out.println("- " + (int) Math.round((1000. * simulations) / (endT - startT)) + " playouts per s");
             System.out.println("- Pack cleaned: " + removed + " transpositions");
             System.out.println("-------- </UCT Debug > ----------");
 //            if(bestChild.state.simpleRegression != null) {

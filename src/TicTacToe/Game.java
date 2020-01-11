@@ -10,7 +10,7 @@ public class Game {
 
     public static void main(String[] args) {
         Board b = new Board();
-        b.setSize(4);
+        b.setSize(3);
         b.initialize();
 
         Options.debug = true;
@@ -19,10 +19,9 @@ public class Game {
         Options options1 = new Options();
         options1.fixedSimulations = true;
         options1.nSimulations = 30000;
-        options1.imm = true;
         aiPlayer1.setOptions(options1);
 
-        AIPlayer aiPlayer2 = new POTester();
+        AIPlayer aiPlayer2 = new UCTPlayer();
         Options options2 = new Options();
         options2.fixedSimulations = true;
         options2.nSimulations = 30000;

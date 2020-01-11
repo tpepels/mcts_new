@@ -56,7 +56,7 @@ public class AtariGoFrame extends JFrame {
             options1.fixedSimulations = true;
             options1.nSimulations = 50000;
             options1.RAVE = true;
-            options1.MAST = true;
+            //options1.MAST = true;
 
             options2 = new Options();
             aiPlayer2 = new UCTPlayer();
