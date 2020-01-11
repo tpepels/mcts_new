@@ -18,7 +18,7 @@ public class UCTNode {
     public final int player;
     public final int[] move;
     private boolean expanded = false, simulated = false;
-    private List<UCTNode> children;
+    public List<UCTNode> children;
     private double[] RAVEvalue = {0, 0};
     private int RAVEVisits = 0;
     // For debug only
@@ -98,14 +98,14 @@ public class UCTNode {
 
                         if (options.isRAVEMove(player, board.getMoveId(c.move), depth)) {
                             c.updateRAVE(result);
-                            break;
                         }
                     }
                 }
             }
             //
             assert result[0] != -1000 && result[1] != -1000 : "Strange result";
-            updateStats(result);
+            if (!child.isSolved())
+                updateStats(result);
             // For displaying the time-series charts
             if (Options.debug && depth == 0)
                 child.timeSeries.add(child.getValue(player));
@@ -161,7 +161,7 @@ public class UCTNode {
 
             IBoard tempBoard = board.clone();
             tempBoard.doMove(move);
-            assert tempBoard.getPlayerToMove() == (3 - player) : "Incorrect player to move in expand";
+
             UCTNode child = new UCTNode(3 - player, move, options, tempBoard.hash(), tt);
 
             if (Options.debug)
@@ -473,11 +473,11 @@ public class UCTNode {
         StringBuilder sb = new StringBuilder();
         sb.append(board.getMoveString(move));
         if (state != null)
-            sb.append(" :: ").append(state.toString());
+            sb.append("\t :: ").append(state.toString());
         else
             sb.append(" :: ").append(" no state");
         if (RAVEVisits > 0) {
-            sb.append(" :: RAVE 1: ").append(State.df2.format(getRAVE(1))).append(" RAVE 2: ").
+            sb.append("\t :: RAVE 1: ").append(State.df2.format(getRAVE(1))).append(" RAVE 2: ").
                     append(State.df2.format(getRAVE(2))).append(" Rn: ").append(RAVEVisits);
         }
 

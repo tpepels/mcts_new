@@ -86,13 +86,13 @@ public class State {
     public String toString() {
         if (solvedPlayer == 0) {
             String str = "val1: " + df2.format(getMean(1)) + " val2: " +
-                    df2.format(getMean(2)) + "  n: " + visits;
+                    df2.format(getMean(2)) + " n: " + visits;
             if (imValue[0] != Integer.MIN_VALUE && imValue[1] != Integer.MIN_VALUE) {
-                str += " ::  im1: " + df2.format(imValue[0]);
+                str += "\t :: im1: " + df2.format(imValue[0]);
                 str += "  im2: " + df2.format(imValue[1]);
             }
             if (simpleRegression != null) {
-                str += " ::  reg1: " + df2.format(getRegressionValue(1, 1));
+                str += "\t :: reg1: " + df2.format(getRegressionValue(1, 1));
                 str += "  reg2: " + df2.format(getRegressionValue(1, 2));
             }
             return str;

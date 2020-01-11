@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class Board implements IBoard {
-
     // Zobrist stuff
     private static long[][][] zbnums = null;
     private static long p1Hash, p2Hash;
@@ -17,14 +16,15 @@ public class Board implements IBoard {
     private long[][] seen;
     private long seenI = Long.MIN_VALUE;
     private int size, currentPlayer, winner, nMoves;
+    private MoveList moveList;
 
     public Board(int size) {
         this.size = size;
+        moveList = new MoveList(size*size);
     }
 
     @Override
     public void initialize() {
-        board = new int[size][size];
         board = new int[size][size];
         seen = new long[size][size];
         winner = NONE_WIN;
@@ -35,10 +35,8 @@ public class Board implements IBoard {
         if (zbnums == null) {
             // init the zobrist numbers
             Random rng = new Random();
-
             // 64 locations, 3 states for each location = 192
             zbnums = new long[size][size][3];
-
             for (int i = 0; i < size; i++) {
                 for (int j = 0; j < size; j++) {
                     zbnums[i][j][0] = rng.nextLong();
@@ -82,7 +80,6 @@ public class Board implements IBoard {
                 zbHash ^= p2Hash;
                 zbHash ^= p1Hash;
             }
-
             currentPlayer = 3 - currentPlayer;
         }
     }
@@ -96,8 +93,6 @@ public class Board implements IBoard {
     public MoveList getPlayoutMoves(boolean heuristics) {
         return getExpandMoves();
     }
-
-    MoveList moveList = new MoveList(size * size);
 
     @Override
     public MoveList getExpandMoves() {
@@ -120,7 +115,6 @@ public class Board implements IBoard {
     public int getMaxMoveId() {
         return size * size;
     }
-
 
     @Override
     public String getMoveString(int[] move) {
@@ -197,16 +191,15 @@ public class Board implements IBoard {
     public IBoard clone() {
         Board b = new Board(size);
         b.board = new int[size][size];
+        b.seen = new long[size][size];
         b.size = size;
-
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
                 b.board[i][j] = board[i][j];
             }
         }
-
-        b.winner = this.winner;
-        b.currentPlayer = this.currentPlayer;
+        b.winner = winner;
+        b.currentPlayer = currentPlayer;
         b.zbHash = zbHash;
         b.nMoves = nMoves;
         return b;
@@ -237,5 +230,20 @@ public class Board implements IBoard {
             floodMap = floodFill(x, y + 1, value, floodMap);
         }
         return floodMap;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if(board[i][j] != 0)
+                sb.append(board[i][j]);
+                else
+                    sb.append(" ");
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
     }
 }

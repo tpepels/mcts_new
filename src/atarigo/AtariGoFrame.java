@@ -21,7 +21,7 @@ public class AtariGoFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         nogoPanel = new NogoPanel(this);
         setContentPane(nogoPanel);
-        int size = 2 * nogoPanel.offset + ((8) * nogoPanel.squareSize);
+        int size = 2 * nogoPanel.offset + (7 * nogoPanel.squareSize);
         setSize(size, size + nogoPanel.squareSize);
         this.addKeyListener(nogoPanel);
         nogoPanel.aiMove();

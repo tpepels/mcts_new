@@ -46,6 +46,15 @@ public class Options {
     public boolean isRAVEMove(int player, int id, int depth) {
         return RAVEMoves[player - 1][id] > depth;
     }
+
+    public void checkRaveMoves() {
+        if(RAVEMoves == null)
+            return;
+        for(int i = 0; i < RAVEMoves[1].length; i++) {
+            boolean bothMoves = RAVEMoves[0][i] > 0 && RAVEMoves[1][i] > 0;
+            assert !bothMoves : "Two the same moves in RAVE";
+        }
+    }
     //
     private double[][] histVal;
     private int[][] histVis;

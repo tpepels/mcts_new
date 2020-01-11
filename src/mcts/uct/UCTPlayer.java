@@ -6,10 +6,11 @@ import framework.MoveCallback;
 import framework.Options;
 import mcts.TransposTable;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
-import org.knowm.xchart.*;
+import org.knowm.xchart.XYChart;
+import org.knowm.xchart.XYChartBuilder;
+import org.knowm.xchart.XYSeries;
 import org.knowm.xchart.style.Styler;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +37,8 @@ public class UCTPlayer implements AIPlayer {
                 simulations++;
                 if (System.currentTimeMillis() >= endTime)
                     break;
+                if (Options.debug)
+                    options.checkRaveMoves();
                 options.resetRAVE(board.getMaxMoveId());
                 // Make one simulation from root to leaf.
                 root.MCTS(board.clone(), 0);
@@ -47,9 +50,12 @@ public class UCTPlayer implements AIPlayer {
             // Run as many simulations as allowed
             while (simulations < options.nSimulations) {
                 simulations++;
+                if (Options.debug)
+                    options.checkRaveMoves();
                 options.resetRAVE(board.getMaxMoveId());
                 // Make one simulation from root to leaf.
                 root.MCTS(board.clone(), 0);
+
                 if (root.isSolved())
                     break; // Break if you find a winning move
             }
@@ -70,6 +76,11 @@ public class UCTPlayer implements AIPlayer {
             System.out.println("- Searched for: " + ((endT - startT) / 1000.) + " s.");
             System.out.println("- " + (int) Math.round((1000. * simulations) / (endT - startT)) + " playouts per s");
             System.out.println("- Pack cleaned: " + removed + " transpositions");
+            for (UCTNode uctNode : root.children) {
+                if (uctNode == bestChild)
+                    System.out.print("====>> ");
+                System.out.println(uctNode);
+            }
             System.out.println("-------- </UCT Debug > ----------");
 //            if(bestChild.state.simpleRegression != null) {
 //                XYChart chart = getScatterPlot(bestChild.timeSeries, bestChild.state.simpleRegression, bestChild.toString());
@@ -85,7 +96,7 @@ public class UCTPlayer implements AIPlayer {
         root = null;
         this.board = null;
 
-        if(moveCallback != null)
+        if (moveCallback != null)
             moveCallback.makeMove(bestMove);
     }
 
