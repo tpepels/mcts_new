@@ -1,16 +1,16 @@
 package framework;
 
 public class MoveList {
-    private int[] movesFrom, movesTo;
+    private int[] movesFrom, movesTo; // TODO Change this so more complex movetypes are possible
     private int size;
 
-    public MoveList(int maxSize) {
+    public MoveList(int maxSize, int maxParts) {
         movesFrom = new int[maxSize];
         movesTo = new int[maxSize];
         size = 0;
     }
 
-    public void add(int from, int to) {
+    public void add(int... moves) {
         assert movesTo.length > size() : "Increasing movelist size";
         if(movesTo.length <= size()) {
             int[] movesToNew = new int[size * 2];
