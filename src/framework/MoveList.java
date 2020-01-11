@@ -1,31 +1,42 @@
 package framework;
 
 public class MoveList {
-    private int[] movesFrom, movesTo; // TODO Change this so more complex movetypes are possible
+    private int[][] moves; // TODO Change this so more complex movetypes are possible
     private int size;
 
-    public MoveList(int maxSize, int maxParts) {
-        movesFrom = new int[maxSize];
-        movesTo = new int[maxSize];
+    public MoveList(int maxSize) {
+        moves = new int[maxSize][2];
         size = 0;
     }
 
-    public void add(int... moves) {
-        assert movesTo.length > size() : "Increasing movelist size";
-        if(movesTo.length <= size()) {
-            int[] movesToNew = new int[size * 2];
-            int[] movesFromNew = new int[size * 2];
-            System.arraycopy(movesFrom, 0, movesFromNew, 0, movesFrom.length);
-            System.arraycopy(movesTo, 0, movesToNew, 0, movesTo.length);
-            movesFrom = movesFromNew;
-            movesTo = movesToNew;
+    public MoveList(int maxSize, int maxParts) {
+        moves = new int[maxSize][maxParts];
+        size = 0;
+    }
+
+    public void add(int... move) {
+        assert moves.length > size() : "Increasing movelist size";
+        if(moves.length <= size()) {
+            int[][] movesNew = new int[size * 2][];
+            for(int i = 0; i< moves.length; i++) {
+                movesNew[i] = new int[moves[i].length];
+                for(int j = 0; j < move.length; j++) {
+                    movesNew[i][j] = moves[i][j];
+                }
+            }
+            moves = movesNew;
         }
-        movesFrom[size] = from;
-        movesTo[size++] = to;
+        if(moves[size] == null)
+            moves[size] = new int[move.length];
+
+        for(int i = 0; i< move.length; i++) {
+            moves[size][i] = move[i];
+        }
+        size++;
     }
 
     public int[] get(int index) {
-        return new int[] {movesFrom[index], movesTo[index]};
+        return moves[index];
     }
 
     public int size() {
@@ -41,10 +52,6 @@ public class MoveList {
     }
 
     public int[][] getArray() {
-        int[][] movelist = new int[size][];
-        for(int i = 0; i < size; i++) {
-            movelist[i] = new int[] {movesFrom[i], movesTo[i]};
-        }
-        return movelist;
+        return moves;
     }
 }
