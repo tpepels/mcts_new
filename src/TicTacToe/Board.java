@@ -6,11 +6,11 @@ import framework.MoveList;
 import java.util.Random;
 
 public class Board implements IBoard {
-    private final char P1_SIGN = 'X', P2_SIGN = 'O';
-
     // Zobrist stuff
     private static long[][][] zbnums = null;
     private static long crossHash, naughtHash;
+    private final char P1_SIGN = 'X', P2_SIGN = 'O';
+    int nMoves = 0;
     private long zbHash;
     //
     private int playerToMove = P1;
@@ -18,7 +18,6 @@ public class Board implements IBoard {
     private int[][] board;
     private boolean[][] seen;
     private int size = 3;
-    int nMoves = 0;
 
     public void setSize(int size) {
         this.size = size;
@@ -172,7 +171,7 @@ public class Board implements IBoard {
     }
 
     @Override
-    public int evaluate(int player) { // WARN This will only work for larger boards
+    public double evaluate(int player) { // WARN This will only work for larger boards
         int maxMe = 0, maxOpp = 0, n = 0;
         seen = new boolean[size][size];
         for (int i = 0; i < size; i++) {

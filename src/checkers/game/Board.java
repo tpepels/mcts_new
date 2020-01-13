@@ -1,41 +1,97 @@
 package checkers.game;
 
 import framework.IBoard;
-import framework.IMove;
 import framework.MoveList;
-import framework.util.FastTanh;
-import framework.util.StatCounter;
-
-import java.util.*;
+import java.util.Random;
 
 public class Board implements IBoard {
     public final static int EMPTY = 0, W_PIECE = P1, B_PIECE = P2, W_KING = W_PIECE * 10, B_KING = B_PIECE * 10;
     private final static long[] seen = new long[64];
     private final static int[] n = {-1, 1}, p1n = {-1}, p2n = {1};
+    // Zobrist stuff
+    static long[][][] zbnums = null;
+    static long p1Hash, p2Hash;
     private static long seenI = Long.MIN_VALUE;
     //
-    public final MoveList slideMoves = new MoveList(1000), jumpMoves = new MoveList(1000);
-    private MoveList moves;
-    private final Stack<Move> pastMoves = new Stack<Move>();
-    private final List<Integer> captures = new ArrayList<Integer>();
-    //
     public int[][] board = new int[8][8];
-    private int nMoves, currentPlayer, nPieces1, nPieces2, nKings1, nKings2, winner = NONE_WIN;
     public int kingMoves = 0; // For the 25 move draw-rule
+    private long zbHash = 0;
+    private int nMoves, currentPlayer, nPieces1, nPieces2, nKings1, nKings2, winner = NONE_WIN;
 
     @Override
-    public boolean doAIMove(IMove move, int player) {
-        int fromX = move.getMove()[0], fromY = move.getMove()[1];
-        int toX = move.getMove()[2], toY = move.getMove()[3];
+    public void initialize() {
+        board = new int[8][8];
+
+        if (zbnums == null) {
+            // init the zobrist numbers
+            Random rng = new Random();
+
+            // 64 locations, 4 states for each location = 192
+            zbnums = new long[8][8][3];
+
+            for (int i = 0; i < zbnums.length; i++) {
+                for (int j = 0; j < zbnums[i].length; j++) {
+                    zbnums[i][j][0] = rng.nextLong();
+                    zbnums[i][j][1] = rng.nextLong();
+                    zbnums[i][j][2] = rng.nextLong();
+                }
+            }
+
+            p1Hash = rng.nextLong();
+            p2Hash = rng.nextLong();
+        }
+        // now build the initial hash
+        zbHash = 0;
+        for (int i = 0; i < zbnums.length; i++) {
+            for (int j = 0; j < zbnums[i].length; j++) {
+                zbHash ^= zbnums[i][j][EMPTY];
+            }
+        }
+
+        currentPlayer = P1;
+        zbHash ^= p1Hash;
+
+        for (int i = 0; i < 3; i++) {
+            for (int j = 1; j <= 8; j += 2) {
+                if (i % 2 == 1) {
+                    board[i][j] = B_PIECE;
+                    zbHash ^= zbnums[i][j][0];
+                    zbHash ^= zbnums[i][j][2];
+                    board[7 - i][j - 1] = W_PIECE;
+                    zbHash ^= zbnums[7 - i][j - 1][0];
+                    zbHash ^= zbnums[7 - i][j - 1][1];
+                } else {
+                    board[i][j - 1] = B_PIECE;
+                    zbHash ^= zbnums[i][j - 1][0];
+                    zbHash ^= zbnums[i][j - 1][2];
+                    board[7 - i][j] = W_PIECE;
+                    zbHash ^= zbnums[7 - i][j][0];
+                    zbHash ^= zbnums[7 - i][j][1];
+                }
+            }
+        }
+
+        nPieces1 = 12;
+        nPieces2 = 12;
+        nKings1 = 0;
+        nKings2 = 0;
+        nMoves = 0;
+        kingMoves = 0;
+        winner = NONE_WIN;
+    }
+
+    @Override
+    public void doMove(int[] move) {
+        int fromX = move[0], fromY = move[1];
+        int toX = move[2], toY = move[3];
         // Move the piece
         int piece = board[fromY][fromX];
         board[fromY][fromX] = Board.EMPTY;
         board[toY][toX] = piece;
         // Check for captures
-        Move mv = (Move) move;
         if (mv.getCaptures() != null) {
             for (int i : mv.getCaptures()) {
-                if (player == P1) {
+                if (currentPlayer == P1) {
                     nPieces2--;
                     if (i > 100) {
                         nKings2--;
@@ -69,14 +125,12 @@ public class Board implements IBoard {
         else
             kingMoves = 0;
 
-        pastMoves.push(mv);
-        currentPlayer = getOpponent(currentPlayer);
+        currentPlayer = 3 - currentPlayer;
         nMoves++;
-        return true;
     }
 
     private boolean canPlayerMakeMove(int player) {
-        int piece, opp = getOpponent(player), seen = 0;
+        int piece, opp = (3 - player), seen = 0;
         int maxSeen = (player == P1) ? nPieces1 : nPieces2;
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board.length; j++) {
@@ -119,11 +173,13 @@ public class Board implements IBoard {
         return false;
     }
 
+    private final MoveList jumpMoves = new MoveList(64), slideMoves = new MoveList(64), captures = new MoveList(64);
+
     @Override
     public MoveList getExpandMoves() {
         jumpMoves.clear();
         slideMoves.clear();
-        int piece, opp = getOpponent(currentPlayer), seen = 0;
+        int piece, opp = 3 - currentPlayer, seen = 0;
         int maxSeen = (currentPlayer == P1) ? nPieces1 : nPieces2;
         boolean captureFound = false;
         for (int i = 0; i < board.length; i++) {
@@ -144,11 +200,17 @@ public class Board implements IBoard {
             }
         }
         //
+        MoveList moves;
         if (captureFound)
             moves = jumpMoves;
         else
             moves = slideMoves;
         return moves;
+    }
+
+    @Override
+    public int getMoveId(int[] move) {
+        return ((move[1] * 8) + move[0]) + 64 * ((move[3] * 8) + move[2]);
     }
 
     @Override
@@ -164,7 +226,6 @@ public class Board implements IBoard {
             dir = n;
         boolean hopMove = false;
         int location;
-        Move mv;
         for (int j : dir) {
             for (int k : n) {
                 location = (8 * (y + j)) + (x + k);
@@ -186,7 +247,7 @@ public class Board implements IBoard {
                         if (board[y + j][x + k] == (opp * 10))
                             location *= 100;
 
-                        captures.add(new Integer(location));
+                        captures.add(location);
                         //
                         if (!generateMovesForPiece(initX, initY, x + (k * 2), y + (j * 2), colour, hops + 1, king, captureOnly, opp)) {
 
@@ -201,6 +262,11 @@ public class Board implements IBoard {
             }
         }
         return hopMove;
+    }
+
+    @Override
+    public String getMoveString(int[] move) {
+        return null;
     }
 
     @Override
@@ -242,51 +308,12 @@ public class Board implements IBoard {
         return 64 + (100 * 64);
     }
 
-    @Override
-    public void initialize() {
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                board[i][j] = EMPTY;
-            }
-        }
-
-        for (int i = 0; i < 3; i++) {
-            for (int j = 1; j <= 8; j += 2) {
-                if (i % 2 == 1) {
-                    board[i][j] = B_PIECE;
-                    board[7 - i][j - 1] = W_PIECE;
-                } else {
-                    board[i][j - 1] = B_PIECE;
-                    board[7 - i][j] = W_PIECE;
-                }
-            }
-        }
-
-        nPieces1 = 12;
-        nPieces2 = 12;
-        nKings1 = 0;
-        nKings2 = 0;
-        nMoves = 0;
-        kingMoves = 0;
-        currentPlayer = P1;
-        winner = NONE_WIN;
-    }
-
-    public static int[] convertIntegers(List<Integer> integers) {
-        int[] ret = new int[integers.size()];
-        Iterator<Integer> iterator = integers.iterator();
-        for (int i = 0; i < ret.length; i++) {
-            ret[i] = iterator.next().intValue();
-        }
-        return ret;
-    }
-
     private boolean inBounds(int y, int x) {
         return x >= 0 && x < 8 && y >= 0 && y < 8;
     }
 
     @Override
-    public int evaluate(int player) {
+    public double evaluate(int player) {
         double diff = (nKings1 * 5 + nPieces1) - (nKings2 * 5 + nPieces2);
         double p1eval = Math.tanh(diff / 10.0);
         if (player == 1)
@@ -304,9 +331,7 @@ public class Board implements IBoard {
     public IBoard clone() {
         Board newBoard = new Board();
         for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                newBoard.board[i][j] = board[i][j];
-            }
+            System.arraycopy(board[i], 0, newBoard.board[i], 0, 8);
         }
 
         newBoard.currentPlayer = currentPlayer;
@@ -317,7 +342,7 @@ public class Board implements IBoard {
         newBoard.winner = winner;
         newBoard.nMoves = nMoves;
         newBoard.kingMoves = kingMoves;
-
+        newBoard.zbHash = zbHash;
         return newBoard;
     }
 

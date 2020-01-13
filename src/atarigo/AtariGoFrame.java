@@ -1,11 +1,11 @@
 package atarigo;
 
+import atarigo.game.Board;
 import framework.AIPlayer;
 import framework.MoveCallback;
 import framework.MoveList;
 import framework.Options;
 import mcts.uct.UCTPlayer;
-import atarigo.game.Board;
 
 import javax.swing.*;
 import java.awt.*;
@@ -32,16 +32,16 @@ public class AtariGoFrame extends JFrame {
     }
 
     private class NogoPanel extends JPanel implements MouseListener, MouseMotionListener, MoveCallback, KeyListener {
-        private int humanPlayer = 2;
-        private boolean allHuman = false, allAi = true;
         private final Board board;
         private final JFrame frame;
-
         int offset = 40, squareSize = 50, winner = Board.NONE_WIN;
-        private MoveList legalMoves;
         AIPlayer aiPlayer1, aiPlayer2;
         Options options1, options2;
         boolean aiThinking = true;
+        int boardCol = -1, boardRow = -1;
+        private int humanPlayer = 2;
+        private boolean allHuman = false, allAi = true;
+        private MoveList legalMoves;
 
         public NogoPanel(JFrame frame) {
             board = new Board(7);
@@ -151,7 +151,7 @@ public class AtariGoFrame extends JFrame {
                 }
             }
 
-            if(options1.MAST) {
+            if (options1.MAST) {
                 g.setColor(Color.black);
                 for (int i = 0; i < board.size; i++) {
                     for (int j = 0; j < board.size; j++) {
@@ -161,8 +161,8 @@ public class AtariGoFrame extends JFrame {
 
                         x = offset + (i * squareSize);
                         y = offset + (j * squareSize);
-                        String MAST = String.format("%1$,.2f", options1.getMASTValue(1, board.getMoveId(new int[]{i,j})));
-                        g.drawString(MAST,x , y);
+                        String MAST = String.format("%1$,.2f", options1.getMASTValue(1, board.getMoveId(new int[]{i, j})));
+                        g.drawString(MAST, x, y);
                     }
                 }
             }
@@ -180,8 +180,6 @@ public class AtariGoFrame extends JFrame {
         public void mouseDragged(MouseEvent e) {
 
         }
-
-        int boardCol = -1, boardRow = -1;
 
         @Override
         public void mouseMoved(MouseEvent arg0) {
@@ -233,8 +231,8 @@ public class AtariGoFrame extends JFrame {
 
         @Override
         public void keyPressed(KeyEvent e) {
-            if(e.getKeyCode() == KeyEvent.VK_SPACE) {
-                if(!aiThinking)
+            if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+                if (!aiThinking)
                     aiMove();
             }
         }

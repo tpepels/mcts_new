@@ -3,12 +3,15 @@ package mcts.test;
 import framework.*;
 
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
 public class POTester implements AIPlayer {
 
-    private int[] bestMove;
     private static final DecimalFormat df2 = new DecimalFormat("###,##0.0");
+    private int[] bestMove;
     private Options options;
     private IBoard board;
 
@@ -21,7 +24,7 @@ public class POTester implements AIPlayer {
         bestMove = moves.get(Options.r.nextInt(moves.size()));
 
         // show information on the best move
-        if (options.debug) {
+        if (Options.debug) {
             System.out.println("-------- < PO Debug > ----------");
             System.out.println("- Player " + board.getPlayerToMove());
             System.out.println("- Selected move: " + board.getMoveString(bestMove));
@@ -30,8 +33,8 @@ public class POTester implements AIPlayer {
             Map<int[], Double> moveProb = new HashMap<int[], Double>();
             int[] cMove = moveArr[0];
             double c = 1;
-            for(int i = 1; i < moveArr.length; i++) {
-                if(moveArr[i][0] == cMove[0] && moveArr[i][1] == cMove[1]) {
+            for (int i = 1; i < moveArr.length; i++) {
+                if (moveArr[i][0] == cMove[0] && moveArr[i][1] == cMove[1]) {
                     c++;
                 } else {
                     moveProb.put(cMove, c);
@@ -41,7 +44,7 @@ public class POTester implements AIPlayer {
             }
             moveProb.put(cMove, c);
             double N = moveArr.length;
-            for(int[] mv : moveProb.keySet()) {
+            for (int[] mv : moveProb.keySet()) {
                 double prob = (moveProb.get(mv) / N) * 100.;
                 System.out.println("- " + board.getMoveString(mv) + " moveProb: " + df2.format(prob) + "%" + " n: " + moveProb.get(mv));
                 IBoard cBoard = board.clone();
@@ -62,7 +65,8 @@ public class POTester implements AIPlayer {
         return bestMove;
     }
 
-    public void setMoveCallback(MoveCallback moveCallback) {}
+    public void setMoveCallback(MoveCallback moveCallback) {
+    }
 
     @Override
     public void setBoard(IBoard board) {
@@ -79,11 +83,11 @@ public class POTester implements AIPlayer {
 
         @Override
         public int compare(int[] o1, int[] o2) {
-            if(o1[0] > o2[0])
+            if (o1[0] > o2[0])
                 return 1;
-            if(o1[1] > o2[1])
+            if (o1[1] > o2[1])
                 return 1;
-            if(o1[0] == o2[0] && o1[1] == o2[1])
+            if (o1[0] == o2[0] && o1[1] == o2[1])
                 return 0;
             return -1;
         }

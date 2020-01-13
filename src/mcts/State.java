@@ -5,14 +5,15 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
 import java.text.DecimalFormat;
 
 public class State {
+    public static final DecimalFormat df2 = new DecimalFormat("###,##0.00");
     public long hash;
     public int visits = 0, lastVisit = 0;
-    private double[] imValue = {Integer.MIN_VALUE, Integer.MIN_VALUE};
-    private double[] sums = {0, 0};
     public short solvedPlayer = 0;
     public boolean visited = false;
     public SimpleRegression[] simpleRegression = new SimpleRegression[2];
     public State next = null;
+    private double[] imValue = {Integer.MIN_VALUE, Integer.MIN_VALUE};
+    private double[] sums = {0, 0};
 
     public State(long hash) {
         this.hash = hash;
@@ -57,13 +58,17 @@ public class State {
             return (player == solvedPlayer) ? Integer.MAX_VALUE : Integer.MIN_VALUE;
     }
 
+    public double[] getImValue() {
+        return imValue;
+    }
+
     public void setImValue(double[] val) {
         imValue[0] = val[0];
         imValue[1] = val[1];
     }
 
-    public double[] getImValue() {
-        return imValue;
+    public boolean isSolved() {
+        return solvedPlayer != 0;
     }
 
     public void setSolved(int player) {
@@ -73,15 +78,9 @@ public class State {
         this.solvedPlayer = (short) player;
     }
 
-    public boolean isSolved() {
-        return solvedPlayer != 0;
-    }
-
     public int getVisits() {
         return visits;
     }
-
-    public static final DecimalFormat df2 = new DecimalFormat("###,##0.00");
 
     public String toString() {
         if (solvedPlayer == 0) {

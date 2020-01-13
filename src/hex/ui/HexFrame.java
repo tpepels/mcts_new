@@ -13,12 +13,11 @@ import java.awt.event.KeyListener;
 public class HexFrame extends JFrame implements UserInputListener, MoveCallback, KeyListener {
     private static final long serialVersionUID = 1L;
     public static HexComponent hexPanel;
-
+    int winner = Board.NONE_WIN;
     private Board board;
     private AIPlayer aiPlayer1, aiPlayer2;
     private Options options1, options2;
     private boolean aiThinking = false;
-    int winner = Board.NONE_WIN;
 
     public HexFrame() {
         setSize(600, 400);
@@ -54,6 +53,10 @@ public class HexFrame extends JFrame implements UserInputListener, MoveCallback,
         aiMove();
     }
 
+    public static void main(String[] args) {
+        (new HexFrame()).setVisible(true);
+    }
+
     private void aiMove() {
         if (winner == Board.NONE_WIN) {
             if (aiPlayer1 != null && board.getPlayerToMove() == 1) {
@@ -70,10 +73,6 @@ public class HexFrame extends JFrame implements UserInputListener, MoveCallback,
                 t.run();
             }
         }
-    }
-
-    public static void main(String[] args) {
-        (new HexFrame()).setVisible(true);
     }
 
     @Override
@@ -108,8 +107,8 @@ public class HexFrame extends JFrame implements UserInputListener, MoveCallback,
 
     @Override
     public void keyPressed(KeyEvent e) {
-        if(e.getKeyCode() == KeyEvent.VK_SPACE) {
-            if(!aiThinking)
+        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+            if (!aiThinking)
                 aiMove();
         }
     }

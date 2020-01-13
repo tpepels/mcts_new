@@ -15,12 +15,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UCTPlayer implements AIPlayer {
+    public UCTNode root;
+    public IBoard board;
     private MoveCallback moveCallback;
     private TransposTable tt = new TransposTable();
     private int[] bestMove;
     private Options options;
-    public UCTNode root;
-    public IBoard board;
 
     @Override
     public void getMove(IBoard board) {
@@ -69,19 +69,18 @@ public class UCTPlayer implements AIPlayer {
 
         // show information on the best move
         if (Options.debug) {
-            System.out.println("-------- < UCT Debug > ----------");
-            System.out.println("- Player " + board.getPlayerToMove());
-            System.out.println("- Best child: " + bestChild.toString(board));
-            System.out.println("- Play-outs: " + simulations);
-            System.out.println("- Searched for: " + ((endT - startT) / 1000.) + " s.");
-            System.out.println("- " + (int) Math.round((1000. * simulations) / (endT - startT)) + " playouts per s");
-            System.out.println("- Pack cleaned: " + removed + " transpositions");
+            System.out.println("-------- < uct debug > ----------");
             for (UCTNode uctNode : root.children) {
                 if (uctNode == bestChild)
                     System.out.print("====>> ");
                 System.out.println(uctNode);
             }
-            System.out.println("-------- </UCT Debug > ----------");
+            System.out.println("- player " + board.getPlayerToMove());
+            System.out.println("- best child: " + bestChild.toString(board));
+            System.out.println("- # of playouts: " + simulations);
+            System.out.print("- searched for: " + ((endT - startT) / 1000.) + " sec. ");
+            System.out.println((int)Math.round((1000. * simulations) / (endT - startT)) + " ppsec.");
+            System.out.println("-------- </uct debug > ----------");
 //            if(bestChild.state.simpleRegression != null) {
 //                XYChart chart = getScatterPlot(bestChild.timeSeries, bestChild.state.simpleRegression, bestChild.toString());
 //                new SwingWrapper<XYChart>(chart).displayChart();

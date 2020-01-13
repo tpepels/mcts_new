@@ -1,7 +1,5 @@
 package framework;
 
-import java.util.List;
-
 public interface IBoard {
     /**
      * Win/loss/draw and player definitions, don't change these
@@ -39,7 +37,7 @@ public interface IBoard {
 
     void doMove(int[] move);
 
-    int evaluate(int player);
+    double evaluate(int player);
 
     MoveList getPlayoutMoves(boolean heuristics);
 

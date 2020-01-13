@@ -3,10 +3,7 @@ package breakthrough;
 import breakthrough.game.Board;
 import framework.AIPlayer;
 import framework.Options;
-import mcts.test.POTester;
 import mcts.uct.UCTPlayer;
-
-import java.util.Arrays;
 
 public class Game {
 

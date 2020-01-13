@@ -1,9 +1,9 @@
 package atarigo;
 
+import atarigo.game.Board;
 import framework.AIPlayer;
 import framework.Options;
 import mcts.uct.UCTPlayer;
-import atarigo.game.Board;
 
 public class Game {
 

@@ -5,6 +5,7 @@ import framework.AIPlayer;
 import framework.MoveCallback;
 import framework.MoveList;
 import framework.Options;
+import framework.gui.GuiOptions;
 import mcts.uct.UCTPlayer;
 
 import javax.swing.*;
@@ -46,7 +47,7 @@ public class BreakthroughPanel extends JPanel implements MouseListener, MouseMot
         options1.nSimulations = 100000;
         options1.heuristics = true;
         options1.RAVE = true;
-        options1.imm =true;
+        options1.imm = true;
         aiPlayer1.setOptions(options1);
         aiPlayer1.setMoveCallback(this);
 
@@ -70,17 +71,17 @@ public class BreakthroughPanel extends JPanel implements MouseListener, MouseMot
                 y = row * squareSize;
                 //
                 if (boardPos == clickPos[0]) {
-                    g.setColor(Color.decode("#FFF482"));
+                    g.setColor(GuiOptions.S_Square_Color);
                 } else if (boardPos == clickPos[1]) {
-                    g.setColor(Color.decode("#BDFF60"));
+                    g.setColor(GuiOptions.S_Square_Color);
                 } else if (boardPos == clickPos[2]) {
-                    g.setColor(Color.decode("#FF4762"));
+                    g.setColor(GuiOptions.S_Square_Color);
                 } else if (col == boardCol && row == boardRow) {
-                    g.setColor(Color.lightGray);
+                    g.setColor(GuiOptions.S_Square_Color);
                 } else if ((row % 2) == (col % 2)) {
-                    g.setColor(Color.decode("#FFE4C4"));
+                    g.setColor(GuiOptions.L_Square_Color);
                 } else {
-                    g.setColor(Color.decode("#A0522D"));
+                    g.setColor(GuiOptions.D_Square_Color);
                 }
 
                 if (clickNum > 0) {
@@ -94,10 +95,10 @@ public class BreakthroughPanel extends JPanel implements MouseListener, MouseMot
                 int boardPiece = board.board[row * 8 + col] / 100;
                 if (boardPiece != 0) {
                     if (boardPiece == 1) {
-                        g.setColor(Color.white);
+                        g.setColor(GuiOptions.P1_Color);
                         g.fillOval(x + 5, y + 5, squareSize - 10, squareSize - 10);
                     } else if (boardPiece == 2) {
-                        g.setColor(Color.BLACK);
+                        g.setColor(GuiOptions.P2_Color);
                         g.fillOval(x + 5, y + 5, squareSize - 10, squareSize - 10);
                     }
                 }

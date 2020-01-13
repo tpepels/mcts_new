@@ -1,5 +1,7 @@
 package framework;
 
+import java.util.Arrays;
+
 public class MoveList {
     private int[][] moves; // TODO Change this so more complex movetypes are possible
     private int size;
@@ -16,27 +18,29 @@ public class MoveList {
 
     public void add(int... move) {
         assert moves.length > size() : "Increasing movelist size";
-        if(moves.length <= size()) {
+
+        if (moves.length <= size()) {
             int[][] movesNew = new int[size * 2][];
-            for(int i = 0; i< moves.length; i++) {
+            for (int i = 0; i < moves.length; i++) {
                 movesNew[i] = new int[moves[i].length];
-                for(int j = 0; j < move.length; j++) {
+                for (int j = 0; j < move.length; j++) {
                     movesNew[i][j] = moves[i][j];
                 }
             }
             moves = movesNew;
         }
-        if(moves[size] == null)
+        if (moves[size] == null)
             moves[size] = new int[move.length];
 
-        for(int i = 0; i< move.length; i++) {
+        for (int i = 0; i < move.length; i++) {
             moves[size][i] = move[i];
         }
+
         size++;
     }
 
     public int[] get(int index) {
-        return moves[index];
+        return Arrays.copyOf(moves[index], moves[index].length);
     }
 
     public int size() {

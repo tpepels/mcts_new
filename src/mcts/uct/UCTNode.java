@@ -12,20 +12,19 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class UCTNode {
+    public final int player;
+    public final int[] move;
     private final Options options;
     private final TransposTable tt;
     private final long hash;
-    public final int player;
-    public final int[] move;
-    private boolean expanded = false, simulated = false;
     public List<UCTNode> children;
-    private double[] RAVEvalue = {0, 0};
-    private int RAVEVisits = 0;
     // For debug only
     public String boardString;
     public ArrayList<Double> timeSeries;
-
     public State state;
+    private boolean expanded = false, simulated = false;
+    private double[] RAVEvalue = {0, 0};
+    private int RAVEVisits = 0;
 
     /**
      * Constructor for the root
@@ -49,7 +48,7 @@ public class UCTNode {
         this.tt = tt;
         this.hash = hash;
         this.state = tt.getState(hash, true);
-        if (options.debug)
+        if (Options.debug)
             timeSeries = new ArrayList<>();
     }
 
@@ -379,13 +378,6 @@ public class UCTNode {
         }
     }
 
-    private void setSolved(int player) {
-        if (state == null)
-            state = tt.getState(hash, false);
-
-        state.setSolved(player);
-    }
-
     public boolean isSolved() {
         if (state == null)
             state = tt.getState(hash, true);
@@ -396,11 +388,11 @@ public class UCTNode {
         return state.isSolved();
     }
 
-    private void setImValue(double[] imValue) {
+    private void setSolved(int player) {
         if (state == null)
             state = tt.getState(hash, false);
 
-        state.setImValue(imValue);
+        state.setSolved(player);
     }
 
     private double[] getImValue() {
@@ -411,6 +403,13 @@ public class UCTNode {
             return new double[]{Integer.MIN_VALUE, Integer.MIN_VALUE};
 
         return state.getImValue();
+    }
+
+    private void setImValue(double[] imValue) {
+        if (state == null)
+            state = tt.getState(hash, false);
+
+        state.setImValue(imValue);
     }
 
     /**

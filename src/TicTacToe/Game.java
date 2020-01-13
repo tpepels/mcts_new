@@ -3,7 +3,6 @@ package TicTacToe;
 import framework.AIPlayer;
 import framework.IBoard;
 import framework.Options;
-import mcts.test.POTester;
 import mcts.uct.UCTPlayer;
 
 public class Game {

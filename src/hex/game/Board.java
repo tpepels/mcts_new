@@ -3,16 +3,15 @@ package hex.game;
 import framework.IBoard;
 import framework.MoveList;
 
-import java.util.ArrayList;
 import java.util.Random;
 
 public class Board implements IBoard {
     // Zobrist stuff
     private static long[][][] zbnums = null;
     private static long p1Hash, p2Hash;
-    private long zbHash;
     //
     public int[][] board;
+    private long zbHash;
     private long[][] seen;
     private long seenI = Long.MIN_VALUE;
     private int size, currentPlayer, winner, nMoves;
@@ -20,7 +19,7 @@ public class Board implements IBoard {
 
     public Board(int size) {
         this.size = size;
-        moveList = new MoveList(size*size);
+        moveList = new MoveList(size * size);
     }
 
     @Override
@@ -85,7 +84,7 @@ public class Board implements IBoard {
     }
 
     @Override
-    public int evaluate(int player) {
+    public double evaluate(int player) {
         return 0;
     }
 
@@ -237,8 +236,8 @@ public class Board implements IBoard {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                if(board[i][j] != 0)
-                sb.append(board[i][j]);
+                if (board[i][j] != 0)
+                    sb.append(board[i][j]);
                 else
                     sb.append(" ");
             }

@@ -5,6 +5,7 @@ import amazons.game.Board;
 import framework.AIPlayer;
 import framework.MoveCallback;
 import framework.Options;
+import framework.gui.GuiOptions;
 import mcts.uct.UCTPlayer;
 
 import javax.imageio.ImageIO;
@@ -18,13 +19,12 @@ public class AmazonsBoard extends JPanel implements MouseListener, MouseMotionLi
     private static final long serialVersionUID = 1L;
     private final JFrame frame;
     private final int[] moves = new int[40];
-    private int squareSize = 40, boardx = -1, boardy = -1, clickNum = 0, movec = 0, winner;
+    private int squareSize, boardx = -1, boardy = -1, clickNum = 0, movec = 0, winner;
     private int[] clickPos = {-1, -1, -1};
     //
     private Board board;
     private AIPlayer aiPlayer1, aiPlayer2;
     private Image whiteQueen, blackQueen;
-    private Color arrowColor = Color.decode("#D50400");
     private boolean aiThinking = false;
 
     public AmazonsBoard(int squareSize, JFrame frame) {
@@ -41,27 +41,32 @@ public class AmazonsBoard extends JPanel implements MouseListener, MouseMotionLi
         //
         this.addMouseListener(this);
         this.addMouseMotionListener(this);
+
         try {
             whiteQueen = ImageIO.read(new File(getClass().getResource("/img/white_queen.png").getPath()));
             blackQueen = ImageIO.read(new File(getClass().getResource("/img/black_queen.png").getPath()));
         } catch (IOException e) {
             e.printStackTrace();
         }
+        Options.debug = true;
         // Definition for player 1
         aiPlayer1 = new UCTPlayer();
         Options options1 = new Options();
-        options1.fixedSimulations = true;
-        options1.nSimulations = 100000;
+        options1.fixedSimulations = false;
+        options1.time = 5000;
         aiPlayer1.setOptions(options1);
 
         // Definition for player 2
         aiPlayer2 = new UCTPlayer();
         Options options2 = new Options();
-        options2.fixedSimulations = true;
-        options2.nSimulations = 100000;
+        options2.fixedSimulations = false;
+        options2.time = 5000;
         aiPlayer2.setOptions(options2);
+        aiPlayer1.setMoveCallback(this);
+        aiPlayer2.setMoveCallback(this);
+        repaint();
         //
-        aiPlayer1.getMove(board.clone());
+        aiMove();
     }
 
     public void paint(Graphics g) {
@@ -79,17 +84,17 @@ public class AmazonsBoard extends JPanel implements MouseListener, MouseMotionLi
                 y = row * squareSize;
                 //
                 if (boardPos == clickPos[0]) {
-                    g.setColor(Color.decode("#FFF482"));
+                    g.setColor(GuiOptions.S_Square_Color);
                 } else if (boardPos == clickPos[1]) {
-                    g.setColor(Color.decode("#BDFF60"));
+                    g.setColor(GuiOptions.S_Square_Color);
                 } else if (boardPos == clickPos[2]) {
-                    g.setColor(Color.decode("#FF4762"));
+                    g.setColor(GuiOptions.S_Square_Color);
                 } else if (col == boardx && row == boardy) {
-                    g.setColor(Color.GRAY);
+                    g.setColor(GuiOptions.S_Square_Color);
                 } else if ((row % 2) == (col % 2)) {
-                    g.setColor(Color.darkGray);
+                    g.setColor(GuiOptions.D_Square_Color);
                 } else {
-                    g.setColor(Color.lightGray);
+                    g.setColor(GuiOptions.L_Square_Color);
                 }
 
                 if (movec > 0) {
@@ -99,8 +104,8 @@ public class AmazonsBoard extends JPanel implements MouseListener, MouseMotionLi
                 }
 
                 g.fillRect(x, y, squareSize, squareSize);
-                g.setColor(Color.white);
-                ((Graphics2D) g).drawString(Integer.toString(boardPos), x + 1, y + 11);
+                g.setColor(GuiOptions.P1_Color);
+                g.drawString(Integer.toString(boardPos), x + 1, y + 11);
                 int boardPiece = board.board[boardPos];
                 if (boardPiece != Board.EMPTY) {
                     if ((boardPiece / 10) == Board.WHITE_Q) {
@@ -108,7 +113,7 @@ public class AmazonsBoard extends JPanel implements MouseListener, MouseMotionLi
                     } else if ((boardPiece / 10) == Board.BLACK_Q) {
                         g.drawImage(blackQueen, x + 3, y + 3, squareSize - 6, squareSize - 6, null);
                     } else if (boardPiece == Board.ARROW) {
-                        g.setColor(arrowColor);
+                        g.setColor(GuiOptions.Extra_Color_1);
                         g.fillOval(x + 5, y + 5, squareSize - 10, squareSize - 10);
                     }
                 }
@@ -127,27 +132,13 @@ public class AmazonsBoard extends JPanel implements MouseListener, MouseMotionLi
     }
 
     @Override
-    public void mouseDragged(MouseEvent arg0) {
-
-    }
-
-    @Override
-    public void mouseMoved(MouseEvent arg0) {
-        boardx = arg0.getX() / squareSize;
-        boardy = arg0.getY() / squareSize;
-        repaint();
-    }
-
-    @Override
     public void mouseClicked(MouseEvent arg0) {
-        int winner = board.checkWin();
+        winner = board.checkWin();
         //
         if (winner == Board.P2_WIN) {
             frame.setTitle("Amazons - Black wins");
-            System.out.println("P2 wins");
         } else if (winner == Board.P1_WIN) {
             frame.setTitle("Amazons - White wins.");
-            System.out.println("P1 wins");
         }
         //
         int boardPos = boardy * Board.SIZE + boardx;
@@ -196,6 +187,18 @@ public class AmazonsBoard extends JPanel implements MouseListener, MouseMotionLi
     }
 
     @Override
+    public void mouseDragged(MouseEvent arg0) {
+
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent arg0) {
+        boardx = arg0.getX() / squareSize;
+        boardy = arg0.getY() / squareSize;
+        repaint();
+    }
+
+    @Override
     public void mousePressed(MouseEvent arg0) {
 
     }
@@ -216,13 +219,16 @@ public class AmazonsBoard extends JPanel implements MouseListener, MouseMotionLi
         } else if (winner == Board.P1_WIN) {
             frame.setTitle("Amazons - White wins.");
             return;
+        } else {
+            String player = board.currentPlayer == 1 ? "white" : "black";
+            frame.setTitle(player + " to move");
         }
         repaint();
         clickNum = 0;
         clickPos = new int[]{-1, -1, -1};
         // Run the GC in between moves, to limit the runs during search
         System.gc();
-        aiThinking = false;
+        aiThinking =   false;
     }
 
     private void aiMove() {
@@ -250,8 +256,8 @@ public class AmazonsBoard extends JPanel implements MouseListener, MouseMotionLi
 
     @Override
     public void keyPressed(KeyEvent keyEvent) {
-        if(keyEvent.getKeyCode() == KeyEvent.VK_SPACE) {
-            if(!aiThinking)
+        if (keyEvent.getKeyCode() == KeyEvent.VK_SPACE) {
+            if (!aiThinking)
                 aiMove();
         }
     }

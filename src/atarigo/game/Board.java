@@ -6,12 +6,12 @@ import framework.MoveList;
 import java.util.Random;
 
 public class Board implements IBoard {
-    private MoveList moveList;
     static long[][] zbnums = null;
     static long blackHash, whiteHash;
     //
     public int[][] board, liberty;
     public int nMoves = 0, cPlayer = P1, winner, size;
+    private MoveList moveList;
     private long zbHash = 0;
     private long[][] seen;
     private long seenI = Long.MIN_VALUE;
@@ -241,7 +241,7 @@ public class Board implements IBoard {
     }
 
     @Override
-    public int evaluate(int player) {
+    public double evaluate(int player) {
         if (nMoves < 2)
             return 0;
         int[] minLiberty = {100, 100};

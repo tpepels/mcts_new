@@ -1,57 +1,38 @@
 package hex.ui;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Paint;
-import java.awt.Point;
-import java.awt.RenderingHints;
-import java.awt.Shape;
-import java.awt.Stroke;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import javax.swing.JComponent;
 
 public class HexComponent extends JComponent implements MouseListener, MouseMotionListener {
-
-    private int n = 11;
-    private int componentWidth, componentHeight;
-
-    private double hSize, hSizeHalf, hSizeQuarter, hSizeThreeQuarter, vSize, vSizeHalf;
-
-    private Shape[][] hexagons;
-
-    private int[][] hexField;
-
-    private BufferedImage field;
-
-    private Shape selectedHexagon;
 
     //edit this to change the look of the grid
     private final Stroke hexOutlineStroke = new BasicStroke(1, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
     private final Stroke outlineStroke = new BasicStroke(5, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
     private final Stroke selectionOutlineStroke = new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
-
     private final Paint backgroundPaint = new Color(0, 0, 0, 0);
-
     private final Paint hexBackgroundPaint = new Color(211, 215, 207);
     private final Paint hexOutlinePaint = new Color(85, 87, 83);
-
     private final Paint playerOnePaint = new Color(204, 0, 0);
     private final Paint playerTwoPaint = new Color(52, 101, 164);
-
     private final Paint selectionFillPaint = new Color(136, 138, 133);
     private final Paint selectionOutlinePaint = new Color(46, 52, 54);
-
+    private final Object drawObject = new Object();
+    private int n = 11;
+    private int componentWidth, componentHeight;
+    private double hSize, hSizeHalf, hSizeQuarter, hSizeThreeQuarter, vSize, vSizeHalf;
+    private Shape[][] hexagons;
+    private int[][] hexField;
+    private BufferedImage field;
+    private Shape selectedHexagon;
     private UserInputListener listener;
-
-    private boolean firstTurn;
     //private List<InputListener> listeners;
+    private boolean firstTurn;
 
     public HexComponent() {
         //initiate the list of HexComponentListeners
@@ -119,16 +100,16 @@ public class HexComponent extends JComponent implements MouseListener, MouseMoti
         }
     }
 
-    private void setGridSize(int n) {
-        this.n = n;
-        resetField();
-    }
-
     /*public void setValue(int x, int y, int player) {
         hexValues[x][y] = player;
         redrawField();
         repaint();
     }*/
+
+    private void setGridSize(int n) {
+        this.n = n;
+        resetField();
+    }
 
     private void resetField() {
         //the grid of hexagons needs to be reset to the right size, n*n
@@ -171,7 +152,7 @@ public class HexComponent extends JComponent implements MouseListener, MouseMoti
 
                 //width of the component limits the size of the hexField
                 //we therefore have to determine the size through the width
-                double hexWidthHalf = componentWidth / ((double) (2.0 * n) +
+                double hexWidthHalf = componentWidth / ((2.0 * n) +
                         (double) (n - 1));
 
                 setSize(hexWidthHalf * 2);
@@ -339,8 +320,6 @@ public class HexComponent extends JComponent implements MouseListener, MouseMoti
         //return it
         return path;
     }
-
-    private final Object drawObject = new Object();
 
     public void drawField(int[][] newField) {
         synchronized (drawObject) {

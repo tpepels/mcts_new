@@ -1,8 +1,7 @@
 package checkers.game;
 
-import framework.IMove;
 
-public class Move extends IMove {
+public class Move {
     public static int P_SLIDE = 1, K_SLIDE = 2, P_CAP = 3, K_CAP = 4;
     //
     public final int[] move, captures;
@@ -38,7 +37,7 @@ public class Move extends IMove {
     }
 
 
-    public boolean equals(IMove mv) {
+    public boolean equals(Move mv) {
 
         if (mv.getMove().length != move.length)
             return false;
@@ -56,12 +55,10 @@ public class Move extends IMove {
         return ((move[1] * 8) + move[0]) + 64 * ((move[3] * 8) + move[2]);
     }
 
-
     public boolean isChance() {
         return false;
     }
 
-    @Override
     public boolean isInteresting() {
         return captures != null && captures.length > 0;
     }

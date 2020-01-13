@@ -8,12 +8,13 @@ public class Amazons extends JFrame {
     public static AmazonsBoard amazonsPanel;
 
     public Amazons() {
-        setSize(405, 429);
+        setSize(415, 439);
         setResizable(false);
         setVisible(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         amazonsPanel = new AmazonsBoard(50, this);
         setContentPane(amazonsPanel);
+        this.addKeyListener(amazonsPanel);
     }
 
     public static void main(String[] args) {

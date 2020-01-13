@@ -4,7 +4,6 @@ import framework.IBoard;
 import framework.MoveList;
 import framework.Options;
 
-import java.util.List;
 import java.util.Random;
 
 public class Board implements IBoard {
@@ -19,19 +18,20 @@ public class Board implements IBoard {
                     16, 21, 21, 21, 21, 21, 21, 16,
                     20, 28, 28, 28, 28, 28, 28, 20,
                     36, 36, 36, 36, 36, 36, 36, 36};
+    private static final int[] rowOffset = {-1, -1, +1, +1}, colOffset = {-1, +1, -1, +1};
     // Zobrist stuff
     private static long[][] zbnums = null;
     private static long blackHash, whiteHash;
     // Board stuff
-    public int[] board, pieces[];
+    public int[] board;
+    public int[][] pieces;
     public short nMoves, winner, playerToMove;
-    private int nPieces1, progress1, lorentzPV1, nPieces2, progress2, lorentzPV2;
-    private long zbHash = 0;
-
     MoveList moveList = new MoveList(96);
     MoveList captures = new MoveList(32);
     MoveList decisive = new MoveList(32);
     MoveList antiDecisive = new MoveList(32);
+    private int nPieces1, progress1, lorentzPV1, nPieces2, progress2, lorentzPV2;
+    private long zbHash = 0;
 
     public void initialize() {
         board = new int[64];
@@ -196,9 +196,9 @@ public class Board implements IBoard {
                     // Decisive / anti-decisive moves
                     if (playerToMove == 1 && (move[1] / 8 == 0))
                         decisive.add(move[0], move[1]);
-                     else if (playerToMove == 2 && (move[1] / 8 == 7))
+                    else if (playerToMove == 2 && (move[1] / 8 == 7))
                         decisive.add(move[0], move[1]);
-                     else if (decisive.isEmpty() && (board[move[1]] != 0 &&
+                    else if (decisive.isEmpty() && (board[move[1]] != 0 &&
                             (move[0] / 8 == 7 || move[0] / 8 == 0)))
                         antiDecisive.add(move[0], move[1]);
                 }
@@ -214,7 +214,7 @@ public class Board implements IBoard {
         // This should remove any bias towards selecting pieces with more available moves
         moveList.clear();
         int N = pieces[playerToMove - 1].length, S, nPieces = 2;
-        for(int j = 0; j < nPieces; j++) {
+        for (int j = 0; j < nPieces; j++) {
             S = Options.r.nextInt(PIECES);
             for (int i = S; i < N + S; i++) {
                 if (pieces[playerToMove - 1][i % N] != CAPTURED) {
@@ -295,7 +295,7 @@ public class Board implements IBoard {
                     int n = isSafe(to, from, playerToMove) ? 1 : 0;
                     // Dodge move to avoid capture
                     n += !isSafe(from, from, playerToMove) ? 1 : 0;
-                    if(n > 0)
+                    if (n > 0)
                         n += (getLorentzPV(playerToMove, to) - getLorentzPV(playerToMove, from)) / 2;
 
                     for (int j = 0; j < n; j++) {
@@ -307,7 +307,7 @@ public class Board implements IBoard {
     }
 
     @Override
-    public int evaluate(int player) {
+    public double evaluate(int player) {
         int p1eval = 10 * (nPieces1 - nPieces2);
         p1eval += lorentzPV1 - lorentzPV2;
         // Check for piece safety
@@ -408,8 +408,6 @@ public class Board implements IBoard {
         b.zbHash = zbHash;
         return b;
     }
-
-    private static final int[] rowOffset = {-1, -1, +1, +1}, colOffset = {-1, +1, -1, +1};
 
     private boolean isSafe(int position, int from, int player) {
         int rp = position / 8, cp = position % 8, rpp, cpp, pos, occ;

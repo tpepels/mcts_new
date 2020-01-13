@@ -34,6 +34,12 @@ public class Options {
     public boolean RAVE = false;
     public double k = 10;
     public int[][] RAVEMoves;
+    public boolean MAST = false;
+    public double epsilon = .05;
+    //
+    private double[][] histVal;
+    private int[][] histVis;
+    private List<Integer>[] moveLists;
 
     public void resetRAVE(int maxId) {
         RAVEMoves = new int[2][maxId];
@@ -48,19 +54,13 @@ public class Options {
     }
 
     public void checkRaveMoves() {
-        if(RAVEMoves == null)
+        if (RAVEMoves == null)
             return;
-        for(int i = 0; i < RAVEMoves[1].length; i++) {
+        for (int i = 0; i < RAVEMoves[1].length; i++) {
             boolean bothMoves = RAVEMoves[0][i] > 0 && RAVEMoves[1][i] > 0;
             assert !bothMoves : "Two the same moves in RAVE";
         }
     }
-    //
-    private double[][] histVal;
-    private int[][] histVis;
-    private List<Integer>[] moveLists;
-    public boolean MAST = false;
-    public double epsilon = .05;
 
     public void resetMAST(int maxId) {
         histVal = new double[2][maxId];
@@ -71,7 +71,7 @@ public class Options {
     }
 
     public double getMASTValue(int player, int moveId) {
-        return histVal[player - 1][moveId] / (double)histVis[player - 1][moveId];
+        return histVal[player - 1][moveId] / (double) histVis[player - 1][moveId];
     }
 
     public void addMASTMove(int player, int moveId) {
@@ -79,7 +79,7 @@ public class Options {
     }
 
     public void updateMASTMoves(double[] values) {
-        for(int k = 0; k < 2; k++) {
+        for (int k = 0; k < 2; k++) {
             for (int i = 0; i < moveLists[k].size(); i++) {
                 histVal[k][moveLists[k].get(i)] += values[k];
                 histVis[k][moveLists[k].get(i)]++;
