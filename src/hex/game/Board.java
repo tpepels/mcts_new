@@ -207,9 +207,7 @@ public class Board implements IBoard {
     private int[][] floodFill(int x, int y, int value, int[][] floodMap) {
         floodMap[x][y] = value;
         seen[x][y] = seenI;
-        //check whether the connected hexagons exist, have not been visited
-        //already and are occupied by the player. If so, continue the recursion
-        //on those fields.
+
         if (x > 0 && y > 0 && seen[x - 1][y - 1] != seenI && board[x - 1][y - 1] == currentPlayer) {
             floodMap = floodFill(x - 1, y - 1, value, floodMap);
         }

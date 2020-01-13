@@ -26,10 +26,8 @@ public class Board implements IBoard {
     public int[] board;
     public int[][] pieces;
     public short nMoves, winner, playerToMove;
-    MoveList moveList = new MoveList(96);
-    MoveList captures = new MoveList(32);
-    MoveList decisive = new MoveList(32);
-    MoveList antiDecisive = new MoveList(32);
+    private MoveList moveList = new MoveList(96), captures = new MoveList(32),
+            decisive = new MoveList(32), antiDecisive = new MoveList(32);
     private int nPieces1, progress1, lorentzPV1, nPieces2, progress2, lorentzPV2;
     private long zbHash = 0;
 

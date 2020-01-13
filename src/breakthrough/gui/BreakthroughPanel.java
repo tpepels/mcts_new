@@ -141,12 +141,10 @@ public class BreakthroughPanel extends JPanel implements MouseListener, MouseMot
         //
         if (winner == Board.P2_WIN) {
             frame.setTitle("Breakthrough - Black wins");
-            System.out.println("P2 wins");
             board = new Board();
             board.initialize();
         } else if (winner == Board.P1_WIN) {
             frame.setTitle("Breakthrough - White wins.");
-            System.out.println("P1 wins");
             board = new Board();
             board.initialize();
         }
@@ -216,6 +214,11 @@ public class BreakthroughPanel extends JPanel implements MouseListener, MouseMot
         } else if (winner == Board.DRAW) {
             frame.setTitle("Breakthrough - Draw!");
             return;
+        } else {
+            double eval1 = board.evaluate(1);
+            double eval2 = board.evaluate(2);
+            String player = board.playerToMove == 1 ? "white" : "black";
+            frame.setTitle(player + " to move -- eval1: " + eval1 + " eval2: " + eval2);
         }
         moves = board.getExpandMoves();
         // Run the GC in between moves, to limit the runs during search

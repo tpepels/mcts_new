@@ -24,6 +24,7 @@ public class UCTPlayer implements AIPlayer {
 
     @Override
     public void getMove(IBoard board) {
+        System.gc();
         if (options == null)
             throw new RuntimeException("MCTS Options not set.");
         root = new UCTNode(board.getPlayerToMove(), options, board.hash(), tt);
@@ -91,10 +92,9 @@ public class UCTPlayer implements AIPlayer {
 //                }
 //            }
         }
-        // Set the root to the best child, so in the next move, the opponent's move can become the new root
-        root = null;
+        this.root = null;
         this.board = null;
-
+        System.gc();
         if (moveCallback != null)
             moveCallback.makeMove(bestMove);
     }

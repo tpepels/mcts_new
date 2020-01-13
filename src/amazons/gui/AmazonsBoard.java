@@ -220,8 +220,10 @@ public class AmazonsBoard extends JPanel implements MouseListener, MouseMotionLi
             frame.setTitle("Amazons - White wins.");
             return;
         } else {
+            double eval1 = board.evaluate(1);
+            double eval2 = board.evaluate(2);
             String player = board.currentPlayer == 1 ? "white" : "black";
-            frame.setTitle(player + " to move");
+            frame.setTitle(player + " to move -- eval1: " + eval1 + " eval2: " + eval2);
         }
         repaint();
         clickNum = 0;

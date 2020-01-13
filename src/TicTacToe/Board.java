@@ -243,12 +243,12 @@ public class Board implements IBoard {
 
     @Override
     public int getMoveId(int[] move) {
-        return move[0];
+        return move[0] + (size * move[1]);
     }
 
     @Override
     public int getMaxMoveId() {
-        return size;
+        return size * size;
     }
 
     private MoveList getMoves() {

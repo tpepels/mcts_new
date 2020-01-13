@@ -95,13 +95,13 @@ public class Board implements IBoard {
             moveCount = getPossibleMovesFrom(from, possibleMoves);
             // Move count holds the possible number of moves possible from this position
             for (int j = 0; j < moveCount; j++) {
-                moveQueen(from, possibleMoves[j], currentPlayer); // WARN Here!
+                moveQueen(from, possibleMoves[j], currentPlayer);
                 // Iterate through the possible shots
                 shotCount = getPossibleMovesFrom(possibleMoves[j], possibleShots);
                 for (int k = 0; k < shotCount; k++) {
                     moves.add(from, possibleMoves[j], possibleShots[k]);
                 }
-                moveQueen(possibleMoves[j], from, currentPlayer); // TODO When is a queen moved in this method?
+                moveQueen(possibleMoves[j], from, currentPlayer);
             }
         }
         return moves;

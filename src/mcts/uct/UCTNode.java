@@ -178,7 +178,6 @@ public class UCTNode {
                     child.setSolved(winner);
                 }
             }
-
             // implicit minimax
             if (options.imm) {
                 double[] imVal = new double[2];
@@ -368,7 +367,6 @@ public class UCTNode {
         // implicit minimax backups
         if (options.imm && children != null) {
             double[] bestVal = {Integer.MIN_VALUE, Integer.MIN_VALUE};
-            // TODO Check if this should minimize or maximize
             for (UCTNode c : children) {
                 if (c.getImValue()[player - 1] > bestVal[player - 1]) {
                     bestVal = c.getImValue();

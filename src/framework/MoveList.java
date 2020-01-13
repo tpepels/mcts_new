@@ -3,7 +3,7 @@ package framework;
 import java.util.Arrays;
 
 public class MoveList {
-    private int[][] moves; // TODO Change this so more complex movetypes are possible
+    private int[][] moves;
     private int size;
 
     public MoveList(int maxSize) {
