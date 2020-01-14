@@ -69,7 +69,7 @@ public class Board implements IBoard {
         //perform the actual move on the board
         board[move[0]][move[1]] = currentPlayer;
         nMoves++;
-        checkWin();
+        winner = checkWinAfterMove();
         if (winner == NONE_WIN) {
             // Switch players
             if (currentPlayer == P1) {
@@ -120,20 +120,17 @@ public class Board implements IBoard {
         return (char) (97 + move[0]) + "" + (move[1] + 1);
     }
 
-    public int checkWin() {
+    int[][] floodMap;
 
+    private int checkWinAfterMove() {
         if (winner != NONE_WIN)
             return winner;
-
         if (nMoves == (size * size))
             return DRAW;
-
         if (((nMoves + 2) / 2) < size)
             return NONE_WIN;
 
-
-        int[][] floodMap = new int[size][size];
-
+        floodMap = new int[size][size];
         int c = 1;
         seenI++;
         // Player 1 plays along the x axis, 2 along y
@@ -146,7 +143,6 @@ public class Board implements IBoard {
             }
         }
         boolean[] beginList = new boolean[c];
-
         if (currentPlayer == 1) {
             for (int y = 0; y < size; y++) {
                 if (floodMap[0][y] > 0 && !beginList[floodMap[0][y]]) {
@@ -176,6 +172,10 @@ public class Board implements IBoard {
         return NONE_WIN;
     }
 
+    public int checkWin() {
+        return winner;
+    }
+
     @Override
     public int getPlayerToMove() {
         return currentPlayer;
@@ -202,6 +202,44 @@ public class Board implements IBoard {
         b.zbHash = zbHash;
         b.nMoves = nMoves;
         return b;
+    }
+
+    private int dijkstraEval(int player) {
+        DPQ dpq = new DPQ(board.length);
+        int minP1 = 0, minP2 = 0;
+        // Player 1 plays along the x axis, 2 along y
+        if (player == 1) {
+            boolean top = false, bottom = false;
+            for (int x = 0; x < size; x++) {
+                dpq.dijkstra(board, new int[]{0, x}, player);
+                for(int i = 0; i < size; i++) {
+                    if(dpq.dist[0][i] == 0)
+                        top = true;
+                    if(dpq.dist[size-1][i] == 0)
+                        bottom = true;
+                }
+                if(top && bottom)
+                    break;
+            }
+            if(top && bottom)
+                return P1_WIN;
+        } else {
+            boolean left = false, right = false;
+            for (int y = 0; y < size; y++) {
+                dpq.dijkstra(board, new int[]{y, 0}, player);
+                for(int i = 0; i < size; i++) {
+                    if(dpq.dist[i][0] == 0)
+                        left = true;
+                    if(dpq.dist[i][size-1] == 0)
+                        right = true;
+                }
+                if(left && right)
+                    break;
+            }
+            if(left && right)
+                return P2_WIN;
+        }
+        return NONE_WIN;
     }
 
     private int[][] floodFill(int x, int y, int value, int[][] floodMap) {
