@@ -204,44 +204,6 @@ public class Board implements IBoard {
         return b;
     }
 
-    private int dijkstraEval(int player) {
-        DPQ dpq = new DPQ(board.length);
-        int minP1 = 0, minP2 = 0;
-        // Player 1 plays along the x axis, 2 along y
-        if (player == 1) {
-            boolean top = false, bottom = false;
-            for (int x = 0; x < size; x++) {
-                dpq.dijkstra(board, new int[]{0, x}, player);
-                for(int i = 0; i < size; i++) {
-                    if(dpq.dist[0][i] == 0)
-                        top = true;
-                    if(dpq.dist[size-1][i] == 0)
-                        bottom = true;
-                }
-                if(top && bottom)
-                    break;
-            }
-            if(top && bottom)
-                return P1_WIN;
-        } else {
-            boolean left = false, right = false;
-            for (int y = 0; y < size; y++) {
-                dpq.dijkstra(board, new int[]{y, 0}, player);
-                for(int i = 0; i < size; i++) {
-                    if(dpq.dist[i][0] == 0)
-                        left = true;
-                    if(dpq.dist[i][size-1] == 0)
-                        right = true;
-                }
-                if(left && right)
-                    break;
-            }
-            if(left && right)
-                return P2_WIN;
-        }
-        return NONE_WIN;
-    }
-
     private int[][] floodFill(int x, int y, int value, int[][] floodMap) {
         floodMap[x][y] = value;
         seen[x][y] = seenI;

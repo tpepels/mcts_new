@@ -37,7 +37,7 @@ public class HexFrame extends JFrame implements UserInputListener, MoveCallback,
         aiPlayer1 = new UCTPlayer();
         aiPlayer1.setOptions(options1);
         options1.fixedSimulations = true;
-        options1.nSimulations = 50000;
+        options1.nSimulations = 20000;
         options1.RAVE = true;
         options1.MAST = true;
 
@@ -45,7 +45,7 @@ public class HexFrame extends JFrame implements UserInputListener, MoveCallback,
         aiPlayer2 = new UCTPlayer();
         aiPlayer2.setOptions(options2);
         options2.fixedSimulations = true;
-        options2.nSimulations = 50000;
+        options2.nSimulations = 20000;
 
         aiPlayer1.setMoveCallback(this);
         aiPlayer2.setMoveCallback(this);
@@ -100,7 +100,8 @@ public class HexFrame extends JFrame implements UserInputListener, MoveCallback,
             setTitle("Winner is " + board.checkWin());
         } else {
             String player = board.getPlayerToMove() == 1 ? "red" : "blue";
-            setTitle(player + " to move");
+            setTitle(player + " to move ");
+
         }
         aiThinking = false;
     }

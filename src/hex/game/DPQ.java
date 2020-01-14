@@ -24,10 +24,8 @@ public class DPQ {
         dist = new int[V][V];
         this.player = player;
         seenI++;
-
         for (int i = 0; i < V; i++)
             Arrays.fill(dist[i], INF);
-
         int initDist = (board[src[0]][src[1]] == player) ? 0 : ((board[src[0]][src[1]] == 0) ? 1 : INF);
         // Add source node to the priority queue
         pq.add(new Node(src, initDist));
