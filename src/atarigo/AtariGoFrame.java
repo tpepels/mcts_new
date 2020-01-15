@@ -55,14 +55,15 @@ public class AtariGoFrame extends JFrame {
             aiPlayer1.setOptions(options1);
             options1.fixedSimulations = true;
             options1.nSimulations = 50000;
-            options1.RAVE = true;
-            //options1.MAST = true;
+            // options1.RAVE = true;
+            // options1.MAST = true;
 
             options2 = new Options();
             aiPlayer2 = new UCTPlayer();
             aiPlayer2.setOptions(options2);
             options2.fixedSimulations = true;
             options2.nSimulations = 50000;
+            options2.heuristics = false;
 
             aiPlayer1.setMoveCallback(this);
             aiPlayer2.setMoveCallback(this);
@@ -103,8 +104,11 @@ public class AtariGoFrame extends JFrame {
             if (winner != Board.NONE_WIN) {
                 frame.setTitle("Winner is " + board.checkWin());
             } else {
-                String player = board.cPlayer == 1 ? "black" : "white";
-                frame.setTitle(player + " to move");
+                String player = board.getPlayerToMove() == 1 ? "bl" : "wh";
+                String eval = " e1: "+ board.evaluate(1) + " e2 " + board.evaluate(2);
+                String maxLib = " mx1: " + board.maxLiberty[0] + " mx2: " + board.maxLiberty[1];
+                String minLib = " mn1: " + board.minLiberty[0] + " mn2: " + board.minLiberty[1];
+                setTitle(player + eval + maxLib + minLib);
             }
             aiThinking = false;
         }
@@ -116,7 +120,6 @@ public class AtariGoFrame extends JFrame {
             // Background color
             g.setColor(Color.decode("#FFE4C4"));
             g.fillRect(0, 0, getWidth(), getHeight());
-
             // Square pattern
             g.setColor(Color.black);
             int x, y, occ;
@@ -124,7 +127,6 @@ public class AtariGoFrame extends JFrame {
                 for (int j = 0; j < board.size - 1; j++) {
                     x = offset + (i * squareSize);
                     y = offset + (j * squareSize);
-
                     g.drawRect(x, y, squareSize, squareSize);
                     g.setColor(Color.BLACK);
                 }
@@ -134,8 +136,8 @@ public class AtariGoFrame extends JFrame {
                     x = offset + (i * squareSize);
                     y = offset + (j * squareSize);
                     occ = board.board[j][i];
-
                     if (occ != 0) {
+
                         if (occ == 1)
                             g.setColor(Color.BLACK);
                         else g.setColor(Color.WHITE);
@@ -147,10 +149,12 @@ public class AtariGoFrame extends JFrame {
                         else g.setColor(Color.BLACK);
 
                         g.drawString(Integer.toString(board.liberty[j][i]), x, y);
+                    } else {
+                        g.setColor(Color.BLACK);
+                        g.drawString(board.emptyLiberty[0][j][i] + "/" + board.emptyLiberty[1][j][i], x, y);
                     }
                 }
             }
-
             if (options1.MAST) {
                 g.setColor(Color.black);
                 for (int i = 0; i < board.size; i++) {
@@ -173,19 +177,8 @@ public class AtariGoFrame extends JFrame {
                 y = offset + (boardRow * squareSize);
 
                 g.fillOval(x - 10, y - 10, 20, 20);
+
             }
-        }
-
-        @Override
-        public void mouseDragged(MouseEvent e) {
-
-        }
-
-        @Override
-        public void mouseMoved(MouseEvent arg0) {
-            boardCol = (arg0.getX()) / squareSize;
-            boardRow = (arg0.getY()) / squareSize;
-            repaint();
         }
 
         @Override
@@ -200,6 +193,18 @@ public class AtariGoFrame extends JFrame {
                 }
             }
             arg0.consume();
+        }
+
+        @Override
+        public void mouseDragged(MouseEvent e) {
+
+        }
+
+        @Override
+        public void mouseMoved(MouseEvent arg0) {
+            boardCol = (arg0.getX()) / squareSize;
+            boardRow = (arg0.getY()) / squareSize;
+            repaint();
         }
 
         @Override

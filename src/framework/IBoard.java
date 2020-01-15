@@ -46,4 +46,8 @@ public interface IBoard {
     int getMoveId(int[] move);
 
     int getMaxMoveId();
+
+    default void startPlayout() {
+
+    }
 }

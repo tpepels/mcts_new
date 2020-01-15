@@ -16,48 +16,73 @@ public class DPQ {
         this.V = V;
         seen = new long[V][V];
         pq = new PriorityQueue<>(V);
+        dist = new int[V][V];
     }
 
     // Function for Dijkstra's Algorithm
-    public void dijkstra(int[][] board, int[] src, int player) {
-        pq.clear();
-        dist = new int[V][V];
+    public int dijkstra(int[][] board, int player) {
         this.player = player;
         seenI++;
+
         for (int i = 0; i < V; i++)
             Arrays.fill(dist[i], INF);
-        int initDist = (board[src[0]][src[1]] == player) ? 0 : ((board[src[0]][src[1]] == 0) ? 1 : INF);
-        // Add source node to the priority queue
-        pq.add(new Node(src, initDist));
-        // Distance to the source is 0
-        dist[src[0]][src[1]] = initDist;
+
+        pq.clear();
+
+        if (player == 2) {
+            for (int i = 0; i < V; i++) {
+                dist[i][0] = (board[i][0] == player) ? 0 : 1;
+                // Add source node to the priority queue
+                pq.add(new Node(i, 0, dist[i][0]));
+            }
+        } else {
+            for (int i = 0; i < V; i++) {
+                dist[0][i] = (board[0][i] == player) ? 0 : 1;
+                // Add source node to the priority queue
+                pq.add(new Node(0, i, dist[0][i]));
+            }
+        }
+
+        int min = INF, x, y;
+        Node n;
         while (!pq.isEmpty()) {
             // remove the minimum distance node from the priority queue
-            int[] u = pq.remove().node;
+            n = pq.remove();
             // adding the node whose distance is finalized
-            seen[u[0]][u[1]] = seenI;
-            e_Neighbours(board, u);
+            seen[n.x][n.y] = seenI;
+            e_Neighbours(board, n.x, n.y);
+
+            if (player == 2 && n.y == V - 1) {
+                min = Math.min(dist[n.x][n.y], min);
+            } else if (player == 1 && n.x == V - 1) {
+                min = Math.min(dist[n.x][n.y], min);
+            }
         }
+        return min;
     }
 
     // Function to process all the neighbours of the passed node
-    private void e_Neighbours(int[][] board, int[] u) {
+    private void e_Neighbours(int[][] board, int xs, int ys) {
         int newDistance, x, y;
-        boolean playerpos = board[u[0]][u[1]] == player;
-        for (int i = 0; i < xn.length; i++) {
-            x = xn[i] + u[0];
-            y = yn[i] + u[1];
 
-            if (!inBounds(x, y))
+        for (int i = 0; i < xn.length; i++) {
+
+            x = xn[i] + xs;
+            y = yn[i] + ys;
+
+            if (!inBounds(x, y) || seen[x][y] == seenI)
                 continue;
 
             if (board[x][y] != player && board[x][y] != 0)
                 continue;
 
-            if (seen[x][y] != seenI) {
-                newDistance = dist[u[0]][u[1]] + ((board[x][y] == player && playerpos) ? 0 : 1);
-                dist[x][y] = Math.min(newDistance, dist[x][y]);
-                pq.add(new Node(new int[]{x, y}, dist[x][y]));
+            newDistance = dist[xs][ys] + ((board[x][y] == player) ? 0 : 1);
+            if (newDistance < dist[x][y]) {
+                dist[x][y] = newDistance;
+                Node n = new Node(x, y, dist[x][y]);
+
+                if (!pq.contains(n))
+                    pq.add(n);
             }
         }
     }
@@ -67,17 +92,17 @@ public class DPQ {
     }
 
     public static void main(String args[]) {
-        int[][] board ={{0,0,0,0,0},
-                        {1,0,0,0,1},
-                        {1,0,0,0,1},
-                        {1,0,0,1,0},
-                        {0,0,0,0,0}};
+        int[][] board = {{0, 0, 0, 0, 0},
+                {1, 0, 1, 1, 1},
+                {1, 1, 0, 0, 1},
+                {1, 0, 1, 1, 0},
+                {0, 0, 0, 0, 0}};
         DPQ dijk = new DPQ(board.length);
-        dijk.dijkstra(board, new int[]{1,0}, 1);
+        dijk.dijkstra(board, 1);
 
-        for(int i = 0; i < dijk.dist.length; i++) {
-            for(int j = 0; j < dijk.dist[i].length; j++) {
-                if(dijk.dist[i][j] == DPQ.INF)
+        for (int i = 0; i < dijk.dist.length; i++) {
+            for (int j = 0; j < dijk.dist[i].length; j++) {
+                if (dijk.dist[i][j] == DPQ.INF)
                     System.out.print("i");
                 else
                     System.out.print(dijk.dist[i][j]);
@@ -89,17 +114,18 @@ public class DPQ {
 
 // Class to represent a node in the graph
 class Node implements Comparable<Node> {
-    public int[] node;
+    public int x, y;
     public int cost;
 
-    public Node(int[] node, int cost) {
-        this.node = node;
+    public Node(int x, int y, int cost) {
+        this.x = x;
+        this.y = y;
         this.cost = cost;
     }
 
     @Override
     public boolean equals(Object obj) {
-        return node[0] == ((Node)obj).node[0] && node[1] == ((Node)obj).node[1];
+        return x == ((Node) obj).x && y == ((Node) obj).y;
     }
 
     @Override

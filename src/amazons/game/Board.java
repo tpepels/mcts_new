@@ -27,7 +27,6 @@ public class Board implements IBoard {
 
     public Board() {
         board = new int[SIZE * SIZE];
-        currentPlayer = P1;
     }
 
     @Override

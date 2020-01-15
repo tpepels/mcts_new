@@ -271,6 +271,7 @@ public class UCTNode {
         boolean interrupted = false;
         MoveList moves;
         double mastMax, mastVal;
+        board.startPlayout();
         do {
             moves = board.getPlayoutMoves(options.heuristics);
             // No more moves to be made

@@ -390,7 +390,7 @@ public class HexComponent extends JComponent implements MouseListener, MouseMoti
             else {
                 //see if the mouse is on one of the hexagons
                 Point hexCoord = getHexCoordinate(me.getPoint());
-                if (hexCoord != null && (hexField[hexCoord.x][hexCoord.y] == 0 || firstTurn == true)) {
+                if (hexCoord != null && (hexField[hexCoord.x][hexCoord.y] == 0)) {
                     selectedHexagon = hexagons[hexCoord.x][hexCoord.y];
                 } else {
                     selectedHexagon = null;

@@ -16,10 +16,13 @@ public class Board implements IBoard {
     private long seenI = Long.MIN_VALUE;
     private int size, currentPlayer, winner, nMoves;
     private MoveList moveList;
+    public boolean realPlay = true;
+    private final DPQ dpq;
 
     public Board(int size) {
         this.size = size;
         moveList = new MoveList(size * size);
+        dpq = new DPQ(size);
     }
 
     @Override
@@ -69,7 +72,10 @@ public class Board implements IBoard {
         //perform the actual move on the board
         board[move[0]][move[1]] = currentPlayer;
         nMoves++;
-        winner = checkWinAfterMove();
+        // In the real game
+        if(!playout)
+            winner = checkWinAfterMove();
+
         if (winner == NONE_WIN) {
             // Switch players
             if (currentPlayer == P1) {
@@ -85,7 +91,9 @@ public class Board implements IBoard {
 
     @Override
     public double evaluate(int player) {
-        return 0;
+        if(nMoves < 4)
+            return 0;
+        return dpq.dijkstra(board, player) - dpq.dijkstra(board, 3 - player);
     }
 
     @Override
@@ -120,8 +128,6 @@ public class Board implements IBoard {
         return (char) (97 + move[0]) + "" + (move[1] + 1);
     }
 
-    int[][] floodMap;
-
     private int checkWinAfterMove() {
         if (winner != NONE_WIN)
             return winner;
@@ -130,50 +136,40 @@ public class Board implements IBoard {
         if (((nMoves + 2) / 2) < size)
             return NONE_WIN;
 
-        floodMap = new int[size][size];
-        int c = 1;
-        seenI++;
-        // Player 1 plays along the x axis, 2 along y
-        for (int x = 0; x < size; x++) {
-            for (int y = 0; y < size; y++) {
-                if (floodMap[x][y] == 0 && board[x][y] == currentPlayer) {
-                    floodMap = floodFill(x, y, c, floodMap);
-                    c++;
-                }
-            }
-        }
-        boolean[] beginList = new boolean[c];
-        if (currentPlayer == 1) {
-            for (int y = 0; y < size; y++) {
-                if (floodMap[0][y] > 0 && !beginList[floodMap[0][y]]) {
-                    beginList[floodMap[0][y]] = true;
-                }
-            }
-            for (int y = 0; y < size; y++) {
-                if (floodMap[size - 1][y] > 0 && beginList[floodMap[size - 1][y]]) {
-                    winner = P1_WIN;
-                    return P1_WIN;
-                }
-            }
-        } else {
-            for (int x = 0; x < size; x++) {
-                if (floodMap[x][0] > 0 && !beginList[floodMap[x][0]]) {
-                    beginList[floodMap[x][0]] = true;
-                }
-            }
+        if(dpq.dijkstra(board, currentPlayer) == 0)
+            return currentPlayer;
 
-            for (int x = 0; x < size; x++) {
-                if (floodMap[x][size - 1] > 0 && beginList[floodMap[x][size - 1]]) {
-                    winner = P2_WIN;
-                    return P2_WIN;
-                }
-            }
-        }
         return NONE_WIN;
     }
 
+    private boolean playout = false;
+
+    @Override
+    public void startPlayout() {
+        playout = true;
+    }
+
     public int checkWin() {
-        return winner;
+        if(playout) {
+            if(nMoves == (size * size)) {
+
+                if (dpq.dijkstra(board, 1) == 0)
+                    return P1_WIN;
+
+                if (dpq.dijkstra(board, 2) == 0)
+                    return P2_WIN;
+
+                return DRAW;
+            }
+        } else {
+            if (winner != NONE_WIN)
+                return winner;
+            if (nMoves == (size * size))
+                return DRAW;
+            if (((nMoves + 2) / 2) < size)
+                return NONE_WIN;
+        }
+        return NONE_WIN;
     }
 
     @Override
@@ -201,6 +197,7 @@ public class Board implements IBoard {
         b.currentPlayer = currentPlayer;
         b.zbHash = zbHash;
         b.nMoves = nMoves;
+        b.realPlay = false; // for algorithms the board will be completely filled before checking for a win
         return b;
     }
 
