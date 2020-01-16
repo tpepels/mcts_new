@@ -12,8 +12,6 @@ public class Board implements IBoard {
     //
     public int[][] board;
     private long zbHash;
-    private long[][] seen;
-    private long seenI = Long.MIN_VALUE;
     private int size, currentPlayer, winner, nMoves;
     private MoveList moveList;
     public boolean realPlay = true;
@@ -28,7 +26,6 @@ public class Board implements IBoard {
     @Override
     public void initialize() {
         board = new int[size][size];
-        seen = new long[size][size];
         winner = NONE_WIN;
         currentPlayer = P1;
         nMoves = 0;
@@ -186,7 +183,6 @@ public class Board implements IBoard {
     public IBoard clone() {
         Board b = new Board(size);
         b.board = new int[size][size];
-        b.seen = new long[size][size];
         b.size = size;
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
@@ -199,31 +195,6 @@ public class Board implements IBoard {
         b.nMoves = nMoves;
         b.realPlay = false; // for algorithms the board will be completely filled before checking for a win
         return b;
-    }
-
-    private int[][] floodFill(int x, int y, int value, int[][] floodMap) {
-        floodMap[x][y] = value;
-        seen[x][y] = seenI;
-
-        if (x > 0 && y > 0 && seen[x - 1][y - 1] != seenI && board[x - 1][y - 1] == currentPlayer) {
-            floodMap = floodFill(x - 1, y - 1, value, floodMap);
-        }
-        if (x > 0 && seen[x - 1][y] != seenI && board[x - 1][y] == currentPlayer) {
-            floodMap = floodFill(x - 1, y, value, floodMap);
-        }
-        if (y > 0 && seen[x][y - 1] != seenI && board[x][y - 1] == currentPlayer) {
-            floodMap = floodFill(x, y - 1, value, floodMap);
-        }
-        if (x < (size - 1) && y < (size - 1) && seen[x + 1][y + 1] != seenI && board[x + 1][y + 1] == currentPlayer) {
-            floodMap = floodFill(x + 1, y + 1, value, floodMap);
-        }
-        if (x < (size - 1) && seen[x + 1][y] != seenI && board[x + 1][y] == currentPlayer) {
-            floodMap = floodFill(x + 1, y, value, floodMap);
-        }
-        if (y < (size - 1) && seen[x][y + 1] != seenI && board[x][y + 1] == currentPlayer) {
-            floodMap = floodFill(x, y + 1, value, floodMap);
-        }
-        return floodMap;
     }
 
     @Override

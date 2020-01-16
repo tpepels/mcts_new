@@ -55,15 +55,15 @@ public class AtariGoFrame extends JFrame {
             aiPlayer1.setOptions(options1);
             options1.fixedSimulations = true;
             options1.nSimulations = 50000;
-            // options1.RAVE = true;
-            // options1.MAST = true;
+            options1.RAVE = true;
+            //options1.MAST = true;
+            options1.imm = true;
 
             options2 = new Options();
             aiPlayer2 = new UCTPlayer();
             aiPlayer2.setOptions(options2);
             options2.fixedSimulations = true;
             options2.nSimulations = 50000;
-            options2.heuristics = false;
 
             aiPlayer1.setMoveCallback(this);
             aiPlayer2.setMoveCallback(this);
@@ -151,7 +151,7 @@ public class AtariGoFrame extends JFrame {
                         g.drawString(Integer.toString(board.liberty[j][i]), x, y);
                     } else {
                         g.setColor(Color.BLACK);
-                        g.drawString(board.emptyLiberty[0][j][i] + "/" + board.emptyLiberty[1][j][i], x, y);
+                        g.drawString(board.emptyLiberty[0][j][i] + "/" + board.emptyLiberty[1][j][i], x, y-10);
                     }
                 }
             }

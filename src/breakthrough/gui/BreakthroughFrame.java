@@ -10,12 +10,13 @@ public class BreakthroughFrame extends JFrame {
     public static BreakthroughPanel breakthroughPanel;
 
     public BreakthroughFrame() {
-        setSize(405, 429);
+        setSize(410, 440);
         setResizable(false);
         setVisible(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         breakthroughPanel = new BreakthroughPanel(50, this);
         setContentPane(breakthroughPanel);
+        breakthroughPanel.aiMove();
     }
 
     public static void main(String[] args) {

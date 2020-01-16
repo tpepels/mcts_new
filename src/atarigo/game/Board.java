@@ -351,10 +351,11 @@ public class Board implements IBoard {
                 }
             }
         }
+
         if (player == 1)
-            return minLiberty[0] - minLiberty[1];
+            return (maxLiberty[0] + minLiberty[0]) - (maxLiberty[1] + minLiberty[1]);
         else
-            return minLiberty[1] - minLiberty[0];
+            return (maxLiberty[1] + minLiberty[1]) - (maxLiberty[0] + minLiberty[0]);
     }
 
     @Override

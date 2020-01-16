@@ -10,19 +10,18 @@ import mcts.uct.UCTPlayer;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.*;
 
-public class BreakthroughPanel extends JPanel implements MouseListener, MouseMotionListener, MoveCallback {
+public class BreakthroughPanel extends JPanel implements MouseListener, MouseMotionListener, MoveCallback, KeyListener {
     private static final long serialVersionUID = 1L;
     private final JFrame frame;
     private MoveList moves;
-    private int squareSize = 40, boardCol = -1, boardRow = -1, clickNum = 0;
+    private int squareSize = 40, boardCol = -1, boardRow = -1, clickNum = 0, winner = 0;
     private int[] clickPos = {-1, -1, -1};
     //
     private Board board;
     private AIPlayer aiPlayer1, aiPlayer2;
+    private boolean aiThinking = false;
     private int[] lastMove;
 
     public BreakthroughPanel(int squareSize, JFrame frame) {
@@ -38,6 +37,7 @@ public class BreakthroughPanel extends JPanel implements MouseListener, MouseMot
 
         addMouseListener(this);
         addMouseMotionListener(this);
+        addKeyListener(this);
 
         moves = board.getExpandMoves();
         Options.debug = true;
@@ -48,12 +48,19 @@ public class BreakthroughPanel extends JPanel implements MouseListener, MouseMot
         options1.heuristics = true;
         options1.RAVE = true;
         options1.imm = true;
+        options1.earlyTerm = true;
         aiPlayer1.setOptions(options1);
         aiPlayer1.setMoveCallback(this);
 
-        //
-        if (aiPlayer1 != null)
-            aiPlayer1.getMove(board.clone());
+        aiPlayer2 = new UCTPlayer();
+        Options options2 = new Options();
+        options2.fixedSimulations = true;
+        options2.nSimulations = 100000;
+        options2.heuristics = true;
+        options2.RAVE = true;
+        options2.imm = true;
+        aiPlayer2.setOptions(options1);
+        aiPlayer2.setMoveCallback(this);
     }
 
     public void paint(Graphics g) {
@@ -197,43 +204,67 @@ public class BreakthroughPanel extends JPanel implements MouseListener, MouseMot
 
     }
 
+
+    public void aiMove() {
+        repaint();
+        if (winner == Board.NONE_WIN) {
+            if (board.getPlayerToMove() == 1) {
+                aiThinking = true;
+                frame.setTitle("AI 1 Thinking .....");
+                Thread t = new Thread(aiPlayer1);
+                aiPlayer1.setBoard(board.clone());
+                t.run();
+            } else if (board.getPlayerToMove() == 2) {
+                aiThinking = true;
+                frame.setTitle("AI 2 Thinking .....");
+                Thread t = new Thread(aiPlayer2);
+                aiPlayer2.setBoard(board.clone());
+                t.run();
+            }
+        }
+    }
+
+
     public void makeMove(int[] move) {
         lastMove = move;
         board.doMove(move);
-        clickNum = 0;
-        clickPos = new int[]{-1, -1, -1};
-        repaint();
         //
-        int winner = board.checkWin();
+        winner = board.checkWin();
         if (winner == Board.P2_WIN) {
             frame.setTitle("Breakthrough - Black wins");
             return;
         } else if (winner == Board.P1_WIN) {
             frame.setTitle("Breakthrough - White wins.");
             return;
-        } else if (winner == Board.DRAW) {
-            frame.setTitle("Breakthrough - Draw!");
-            return;
         } else {
             double eval1 = board.evaluate(1);
-            double eval2 = board.evaluate(2);
-            String player = board.playerToMove == 1 ? "white" : "black";
-            frame.setTitle(player + " to move -- eval1: " + eval1 + " eval2: " + eval2);
+            String player = board.getPlayerToMove() == 1 ? "white" : "black";
+            frame.setTitle(player + " to move - e1: " + eval1 + " e2: " + -eval1);
         }
+        clickNum = 0;
+        clickPos = new int[]{-1, -1, -1};
+        repaint();
         moves = board.getExpandMoves();
         // Run the GC in between moves, to limit the runs during search
         System.gc();
-        //
-        if (board.getPlayerToMove() == Board.P2) {
-            frame.setTitle("Breakthrough - Black's move");
-            if (aiPlayer2 != null)
-                aiPlayer2.getMove(board.clone());
-            //aiPlayer2.getMove(board, this, Board.P2, true, lastMove);
-        } else {
-            frame.setTitle("Breakthrough - White's move");
-            if (aiPlayer1 != null)
-                aiPlayer1.getMove(board.clone());
-            //aiPlayer1.getMove(board, this, Board.P1, true, lastMove);
+        aiThinking =   false;
+    }
+
+    @Override
+    public void keyTyped(KeyEvent keyEvent) {
+
+    }
+
+    @Override
+    public void keyPressed(KeyEvent keyEvent) {
+        if (keyEvent.getKeyCode() == KeyEvent.VK_SPACE) {
+            if (!aiThinking)
+                aiMove();
         }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent keyEvent) {
+
     }
 }

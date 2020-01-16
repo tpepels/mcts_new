@@ -305,7 +305,7 @@ public class Board implements IBoard {
     }
 
     @Override
-    public double evaluate(int player) {
+    public double evaluate(int player) { // TODO Evaluation very negative for P1
         int p1eval = 10 * (nPieces1 - nPieces2);
         p1eval += lorentzPV1 - lorentzPV2;
         // Check for piece safety
