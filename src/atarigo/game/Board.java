@@ -210,13 +210,17 @@ public class Board implements IBoard {
         int x = move[0], y = move[1], opp = 3 - cPlayer;
 
         int lib = updateOppLiberty(x, y, opp, size * size);
-        if (lib == 0)
+        if (lib == 0) {
             winner = cPlayer;
+            return;
+        }
         else { // In case of suicide capture, the capture counts, not the suicide
             lib = updateGroup(x, y);
             updateMyLiberty(x, y, lib, cPlayer);
-            if (lib == 0)
+            if (lib == 0) {
                 winner = (opp);
+                return;
+            }
         }
 
 
@@ -253,9 +257,6 @@ public class Board implements IBoard {
             emptyLiberty[cPlayer - 1][y - 1][x] += lib - 2;
             maxLiberty[cPlayer - 1] = Math.max(emptyLiberty[cPlayer - 1][y - 1][x], maxLiberty[cPlayer - 1]);
         }
-
-        seenI++;
-
         zbHash ^= zbnums[pos][cPlayer];
         cPlayer = (3 - cPlayer);
         hashCurrentPlayer();
