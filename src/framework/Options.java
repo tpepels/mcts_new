@@ -34,9 +34,10 @@ public class Options {
     public boolean RAVE = false;
     public double k = 10;
     public int[][] RAVEMoves;
-    public boolean MAST = false;
-    public double epsilon = .05;
     //
+    public boolean MAST = false, UCBMast = false;
+    public double epsilon = .05;
+    public long[] totalHistVis = {0, 0};
     private double[][] histVal;
     private int[][] histVis;
     private List<Integer>[] moveLists;
@@ -68,10 +69,15 @@ public class Options {
         moveLists = new LinkedList[2];
         moveLists[0] = new LinkedList<>();
         moveLists[1] = new LinkedList<>();
+        totalHistVis = new long[]{0, 0};
     }
 
     public double getMASTValue(int player, int moveId) {
         return histVal[player - 1][moveId] / (double) histVis[player - 1][moveId];
+    }
+
+    public double getMASTVisits(int player, int moveId) {
+        return (double) histVis[player - 1][moveId];
     }
 
     public void addMASTMove(int player, int moveId) {
@@ -83,6 +89,7 @@ public class Options {
             for (int i = 0; i < moveLists[k].size(); i++) {
                 histVal[k][moveLists[k].get(i)] += values[k];
                 histVis[k][moveLists[k].get(i)]++;
+                totalHistVis[k]++;
             }
             moveLists[k].clear();
         }

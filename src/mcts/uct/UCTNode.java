@@ -153,7 +153,7 @@ public class UCTNode {
             return null;
 
         int[] move;
-        double[] best_imVal = {Integer.MIN_VALUE, Integer.MIN_VALUE};
+        double best_imVal = Integer.MIN_VALUE;
         // Add all moves as children to the current node
         for (int i = 0; i < moves.size(); i++) {
             move = moves.get(i);
@@ -180,15 +180,14 @@ public class UCTNode {
             }
             // implicit minimax
             if (options.imm) {
-                double[] imVal = new double[2];
-                if (child.getImValue()[0] == Integer.MIN_VALUE) {
-                    imVal[player - 1] = tempBoard.evaluate(player);
-                    imVal[(3 - player) - 1] = -imVal[player - 1];
-                    child.setImValue(imVal);
+                double imVal = 0;
+                if (child.getImValue(player) == Integer.MIN_VALUE) {
+                    imVal = tempBoard.evaluate(player);
+                    child.setImValue(imVal, player);
                 } else // IM Value was already determined elsewhere in the tree
-                    imVal = child.getImValue();
+                    imVal = child.getImValue(player);
 
-                if (imVal[player - 1] > best_imVal[player - 1])
+                if (imVal > best_imVal)
                     best_imVal = imVal;
             }
             children.add(child);
@@ -197,7 +196,7 @@ public class UCTNode {
 
         // Back-propagate the best IM value
         if (options.imm)
-            setImValue(best_imVal);
+            setImValue(best_imVal, player);
 
         // If one of the nodes is a win, return it.
         return winNode;
@@ -209,7 +208,7 @@ public class UCTNode {
             double val;
             // Check the highest and lowest evaluation for normalization
             for (UCTNode c : children) {
-                val = c.getImValue()[player - 1];
+                val = c.getImValue(player);
                 if (val > maxIm)
                     maxIm = val;
                 if (val < minIm)
@@ -241,7 +240,7 @@ public class UCTNode {
 
                 // Implicit minimax
                 if (options.imm && minIm != maxIm) {
-                    double imVal = (c.getImValue()[player - 1] - minIm) / (maxIm - minIm);
+                    double imVal = (c.getImValue(player) - minIm) / (maxIm - minIm);
                     val = (1. - options.imAlpha) * val + (options.imAlpha * imVal);
                 }
 
@@ -264,7 +263,7 @@ public class UCTNode {
     }
 
     private double[] playOut(IBoard board, int depth) {
-        int winner = board.checkWin(), nMoves = 0, moveIndex;
+        int winner = board.checkWin(), nMoves = 0, moveIndex, pl = board.getPlayerToMove();
         assert winner == IBoard.NONE_WIN || winner == IBoard.DRAW : "Board in won position in playout.";
 
         int[] move;
@@ -274,6 +273,7 @@ public class UCTNode {
         board.startPlayout();
         do {
             moves = board.getPlayoutMoves(options.heuristics);
+            pl = board.getPlayerToMove();
             // No more moves to be made
             if (moves.size() == 0)
                 break;
@@ -282,9 +282,23 @@ public class UCTNode {
                 mastMax = Double.NEGATIVE_INFINITY;
                 // Select the move with the highest MAST value
                 for (int i = 0; i < moves.size(); i++) {
-                    mastVal = options.getMASTValue(board.getPlayerToMove(), board.getMoveId(moves.get(i)));
+                    mastVal = options.getMASTValue(pl, board.getMoveId(moves.get(i)));
                     // If bigger, we have a winner, if equal, flip a coin
-                    if (mastVal > mastMax || (mastVal == mastMax && Options.r.nextDouble() < .5)) {
+                    if (mastVal > mastMax) {
+                        mastMax = mastVal;
+                        moveIndex = i;
+                    }
+                }
+            }
+            if (options.UCBMast) {
+                mastMax = Double.NEGATIVE_INFINITY;
+                // Select the move with the highest MAST value
+                for (int i = 0; i < moves.size(); i++) {
+                    mastVal = options.getMASTValue(pl, board.getMoveId(moves.get(i))) +
+                            Math.sqrt((2.0 * Math.log(options.totalHistVis[pl - 1])) /
+                                    options.getMASTVisits(pl, board.getMoveId(moves.get(i))));
+                    // If bigger, we have a winner, if equal, flip a coin
+                    if (mastVal > mastMax) {
                         mastMax = mastVal;
                         moveIndex = i;
                     }
@@ -328,7 +342,7 @@ public class UCTNode {
             score[1] = 0;
         }
 
-        if (options.MAST)
+        if (options.MAST || options.UCBMast)
             options.updateMASTMoves(score);
 
         return score;
@@ -367,13 +381,13 @@ public class UCTNode {
 
         // implicit minimax backups
         if (options.imm && children != null) {
-            double[] bestVal = {Integer.MIN_VALUE, Integer.MIN_VALUE};
+            double bestVal = Integer.MIN_VALUE;
             for (UCTNode c : children) {
-                if (c.getImValue()[player - 1] > bestVal[player - 1]) {
-                    bestVal = c.getImValue();
+                if (c.getImValue(player) > bestVal) {
+                    bestVal = c.getImValue(player);
                 }
             }
-            setImValue(bestVal);
+            setImValue(bestVal, player);
         }
     }
 
@@ -394,21 +408,21 @@ public class UCTNode {
         state.setSolved(player);
     }
 
-    private double[] getImValue() {
+    private double getImValue(int player) {
         if (state == null)
             state = tt.getState(hash, true);
 
         if (state == null)
-            return new double[]{Integer.MIN_VALUE, Integer.MIN_VALUE};
+            return Integer.MIN_VALUE;
 
-        return state.getImValue();
+        return state.getImValue(player);
     }
 
-    private void setImValue(double[] imValue) {
+    private void setImValue(double imValue, int player) {
         if (state == null)
             state = tt.getState(hash, false);
 
-        state.setImValue(imValue);
+        state.setImValue(imValue, player);
     }
 
     /**

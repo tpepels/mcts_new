@@ -10,39 +10,39 @@ public class State {
     public int visits = 0, lastVisit = 0;
     public short solvedPlayer = 0;
     public boolean visited = false;
-    public SimpleRegression[] simpleRegression = new SimpleRegression[2];
+    public SimpleRegression shortRegression = new SimpleRegression();
+    public SimpleRegression longRegression = new SimpleRegression();
     public State next = null;
-    private double[] imValue = {Integer.MIN_VALUE, Integer.MIN_VALUE};
-    private double[] sums = {0, 0};
+    private double imValue = Integer.MIN_VALUE;
+    private double sum = 0;
 
     public State(long hash) {
         this.hash = hash;
-        simpleRegression[0] = new SimpleRegression();
-        simpleRegression[1] = new SimpleRegression();
     }
 
-    public void updateStats(double[] results, boolean regression) {
+    public void updateStats(double[] result, boolean regression) {
         assert !this.isSolved() : "UpdateStats called on solved position!";
 
         visited = true;
-        sums[0] += results[0];
-        sums[1] += results[1];
+        sum += result[0];
         visits++;
 
         if (regression) {
             if (visits % 100 == 0) { // TODO Check this number or put it in options
-                simpleRegression[0].clear();
-                simpleRegression[1].clear();
+                shortRegression.clear();
+            }
+            if (visits % 1000 == 0) { // TODO Check this number or put it in options
+                longRegression.clear();
             }
 
-            simpleRegression[0].addData(visits, getMean(0));
-            simpleRegression[1].addData(visits, getMean(1));
+            shortRegression.addData(visits, sum / visits);
+            longRegression.addData(visits, sum / visits);
         }
     }
 
     public double getRegressionValue(int steps, int player) {
-        if (simpleRegression[player - 1].getN() > 5)
-            return simpleRegression[player - 1].predict(visits + steps); // WARN Visits + steps is correct :)
+        if (shortRegression.getN() > 5)
+            return ((player == 1) ? 1 : -1) * shortRegression.predict(visits + steps); // WARN Visits + steps is correct :)
         else
             return 0; // Value is captured in calling method
     }
@@ -51,20 +51,19 @@ public class State {
         visited = true;
         if (solvedPlayer == 0) { // Position is not solved, return mean
             if (visits > 0)
-                return sums[player - 1] / visits;
+                return (((player == 1) ? 1 : -1) * sum) / visits;
             else
                 return 0;
         } else    // Position is solved, return inf
             return (player == solvedPlayer) ? Integer.MAX_VALUE : Integer.MIN_VALUE;
     }
 
-    public double[] getImValue() {
-        return imValue;
+    public double getImValue(int player) {
+        return ((player == 1) ? 1 : -1) * imValue;
     }
 
-    public void setImValue(double[] val) {
-        imValue[0] = val[0];
-        imValue[1] = val[1];
+    public void setImValue(double val, int player) {
+        imValue = ((player == 1) ? 1 : -1) * val;
     }
 
     public boolean isSolved() {
@@ -84,16 +83,11 @@ public class State {
 
     public String toString() {
         if (solvedPlayer == 0) {
-            String str = "val1: " + df2.format(getMean(1)) + " val2: " +
-                    df2.format(getMean(2)) + " n: " + visits;
-            if (imValue[0] != Integer.MIN_VALUE && imValue[1] != Integer.MIN_VALUE) {
-                str += "\t :: im1: " + df2.format(imValue[0]);
-                str += "  im2: " + df2.format(imValue[1]);
-            }
-            if (simpleRegression != null) {
-                str += "\t :: reg1: " + df2.format(getRegressionValue(1, 1));
-                str += "  reg2: " + df2.format(getRegressionValue(1, 2));
-            }
+            String str = "val_p1: " + df2.format(getMean(1)) + " n: " + visits;
+            if (imValue != Integer.MIN_VALUE)
+                str += "\t :: im_p1: " + df2.format(imValue);
+            if (shortRegression != null)
+                str += "\t :: reg_p1: " + df2.format(getRegressionValue(1, 1));
             return str;
         } else
             return "solved win P" + solvedPlayer;

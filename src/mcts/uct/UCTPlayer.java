@@ -6,6 +6,7 @@ import framework.MoveCallback;
 import framework.Options;
 import mcts.TransposTable;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
+import org.knowm.xchart.SwingWrapper;
 import org.knowm.xchart.XYChart;
 import org.knowm.xchart.XYChartBuilder;
 import org.knowm.xchart.XYSeries;
@@ -82,15 +83,14 @@ public class UCTPlayer implements AIPlayer {
             System.out.print("- searched for: " + ((endT - startT) / 1000.) + " sec. ");
             System.out.println((int)Math.round((1000. * simulations) / (endT - startT)) + " ppsec.");
             System.out.println("-------- </uct debug > ----------");
-//            if(bestChild.state.simpleRegression != null) {
-//                XYChart chart = getScatterPlot(bestChild.timeSeries, bestChild.state.simpleRegression, bestChild.toString());
-//                new SwingWrapper<XYChart>(chart).displayChart();
-//                try {
-//                    Thread.sleep(10000);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//            }
+
+            if(options.regression) {
+                XYChart chart = getScatterPlot(bestChild.timeSeries,
+                        bestChild.state.shortRegression, bestChild.state.longRegression,
+                        bestChild.toString());
+                new SwingWrapper<>(chart).displayChart();
+            }
+
         }
         this.root = null;
         this.board = null;
@@ -99,7 +99,7 @@ public class UCTPlayer implements AIPlayer {
             moveCallback.makeMove(bestMove);
     }
 
-    private XYChart getScatterPlot(List<Double> yData, SimpleRegression simpleRegression, String name) {
+    private XYChart getScatterPlot(List<Double> yData, SimpleRegression shortRegression, SimpleRegression longRegression, String name) {
         XYChart chart = new XYChartBuilder().width(800).height(600).build();
 
         // Customize Chart
@@ -110,15 +110,22 @@ public class UCTPlayer implements AIPlayer {
         int n = yData.size();
         // Series
         List<Integer> xData = new ArrayList<>();
-        List<Double> rData = new ArrayList<>();
+        List<Double> rData = new ArrayList<>(), lData = new ArrayList<>();
         for (int i = 0; i < 1000; i++) {
             xData.add(i);
-            rData.add(0, simpleRegression.predict(n - i));
+            rData.add(0, shortRegression.predict(n - i));
+            lData.add(0, longRegression.predict(n - i));
+        }
+        for (int i = 0; i < 25; i++) {
+            xData.add(1000 + i);
+            rData.add(shortRegression.predict(n + i));
+            lData.add(longRegression.predict(n + i));
         }
 
-        chart.addSeries(name, xData, yData.subList(n - 1000, n)).
+        chart.addSeries(name, xData.subList(0, 1000), yData.subList(n - 1000, n)).
                 setXYSeriesRenderStyle(XYSeries.XYSeriesRenderStyle.Scatter);
-        chart.addSeries("Regression", xData, rData);
+        chart.addSeries("Short regression", xData, rData);
+        chart.addSeries("Long regression", xData, lData);
         return chart;
     }
 

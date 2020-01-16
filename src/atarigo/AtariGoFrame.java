@@ -55,9 +55,10 @@ public class AtariGoFrame extends JFrame {
             aiPlayer1.setOptions(options1);
             options1.fixedSimulations = true;
             options1.nSimulations = 50000;
-            options1.RAVE = true;
-            //options1.MAST = true;
-            options1.imm = true;
+            // options1.RAVE = true;
+            // options1.MAST = true;
+            // options1.imm = true;
+            options1.regression = true;
 
             options2 = new Options();
             aiPlayer2 = new UCTPlayer();
@@ -105,7 +106,7 @@ public class AtariGoFrame extends JFrame {
                 frame.setTitle("Winner is " + board.checkWin());
             } else {
                 String player = board.getPlayerToMove() == 1 ? "bl" : "wh";
-                String eval = " e1: "+ board.evaluate(1) + " e2 " + board.evaluate(2);
+                String eval = " e1: " + board.evaluate(1) + " e2 " + board.evaluate(2);
                 String maxLib = " mx1: " + board.maxLiberty[0] + " mx2: " + board.maxLiberty[1];
                 String minLib = " mn1: " + board.minLiberty[0] + " mn2: " + board.minLiberty[1];
                 setTitle(player + eval + maxLib + minLib);
@@ -151,7 +152,7 @@ public class AtariGoFrame extends JFrame {
                         g.drawString(Integer.toString(board.liberty[j][i]), x, y);
                     } else {
                         g.setColor(Color.BLACK);
-                        g.drawString(board.emptyLiberty[0][j][i] + "/" + board.emptyLiberty[1][j][i], x, y-10);
+                        g.drawString(board.emptyLiberty[0][j][i] + "/" + board.emptyLiberty[1][j][i], x, y - 10);
                     }
                 }
             }

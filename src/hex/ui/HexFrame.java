@@ -39,7 +39,7 @@ public class HexFrame extends JFrame implements UserInputListener, MoveCallback,
         options1.fixedSimulations = true;
         options1.nSimulations = 20000;
         //options1.RAVE = true;
-        //options1.MAST = true;
+        // options1.MAST = true;
 
         options2 = new Options();
         aiPlayer2 = new UCTPlayer();
