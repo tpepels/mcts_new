@@ -100,14 +100,14 @@ public class UCTPlayer implements AIPlayer {
             System.out.println("- collisions: " + tt.collisions + ", tps: " + tt.positions);
             System.out.println("-------- </uct debug > ----------");
 
-            if (options.regression) {
-                if (bestChild.timeSeries.size() > 1000) {
-                    XYChart chart = getScatterPlot(bestChild.timeSeries,
-                            bestChild.state.shortRegression, bestChild.state.longRegression,
-                            bestChild.toString());
-                    new SwingWrapper<>(chart).displayChart();
-                }
-            }
+//            if (options.regression) {
+//                if (bestChild.timeSeries.size() > 1000) {
+//                    XYChart chart = getScatterPlot(bestChild.timeSeries,
+//                            bestChild.state.shortRegression, bestChild.state.longRegression,
+//                            bestChild.toString());
+//                    new SwingWrapper<>(chart).displayChart();
+//                }
+//            }
 
         }
         // Pack the transpositions
