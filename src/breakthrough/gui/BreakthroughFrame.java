@@ -17,6 +17,7 @@ public class BreakthroughFrame extends JFrame {
         breakthroughPanel = new BreakthroughPanel(50, this);
         setContentPane(breakthroughPanel);
         breakthroughPanel.aiMove();
+        addKeyListener(breakthroughPanel);
     }
 
     public static void main(String[] args) {

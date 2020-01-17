@@ -85,7 +85,7 @@ public class UCTNode {
             if (!child.simulated || isTerminal()) {
                 double[] poRes;
                 options.nSamples = Math.round(options.nSamples);
-                for (int i = 0; i > (int)options.nSamples; i++) {
+                for (int i = 0; i < (int) options.nSamples; i++) {
                     if (options.nSamples > 1)
                         poRes = child.playOut(board.clone(), depth + 1);
                     else
@@ -94,7 +94,7 @@ public class UCTNode {
                     result[0] += poRes[0];
                     result[1] += poRes[1];
                 }
-                child.updateStats(result, (int)options.nSamples);
+                child.updateStats(result, (int) options.nSamples);
                 child.simulated = true;
             } else {
                 result = child.MCTS(board, depth + 1);
@@ -106,18 +106,21 @@ public class UCTNode {
                             continue;
 
                         if (options.isRAVEMove(player, board.getMoveId(c.move), depth)) {
-                            c.updateRAVE(result, (int)options.nSamples);
+                            c.updateRAVE(result, (int) options.nSamples);
                         }
                     }
                 }
             }
 
             if (!child.isSolved())
-                updateStats(result, (int)options.nSamples);
+                updateStats(result, (int) options.nSamples);
 
             // For displaying the time-series charts
-            if (Options.debug && depth == 0)
-                child.timeSeries.add(child.getValue(player));
+            if (Options.debug && depth == 0) {
+                for (int i = 0; i < (int) options.nSamples; i++) {
+                    child.timeSeries.add(child.getValue(player));
+                }
+            }
         }
 
         if (child.getValue(player) == Integer.MAX_VALUE) {
@@ -271,7 +274,7 @@ public class UCTNode {
     }
 
     private double[] playOut(IBoard board, int depth) {
-        int winner = board.checkWin(), nMoves = 0, moveIndex, pl = board.getPlayerToMove();
+        int winner = board.checkWin(), nMoves = 0, moveIndex, pl;
         assert winner == IBoard.NONE_WIN || winner == IBoard.DRAW : "Board in won position in playout.";
 
         int[] move;
@@ -334,13 +337,8 @@ public class UCTNode {
                 score[(3 - winner) - 1] -= options.etWv;
             } else {
                 double eval = board.evaluate(1); // TODO - Is it better to include the value of the evaluation here?
-                if (eval > options.etT) {
-                    score[0] = 1;
-                    score[1] = -1;
-                } else if (eval < -options.etT) {
-                    score[1] = 1;
-                    score[0] = -1;
-                }
+                score[0] = eval;
+                score[1] = -eval;
             }
         } else if (winner != IBoard.DRAW) {
             score[winner - 1] = 1;

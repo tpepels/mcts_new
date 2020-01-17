@@ -40,7 +40,7 @@ public class UCTPlayer implements AIPlayer {
             while (true) {
 
                 // Reset nSamples when doing heurisic resampling
-                if(options.resample)
+                if (options.resample)
                     options.nSamples = nSamples;
 
                 simulations += options.nSamples;
@@ -48,7 +48,7 @@ public class UCTPlayer implements AIPlayer {
                 if (System.currentTimeMillis() >= endTime)
                     break;
 
-                if (Options.debug)
+                if (Options.debug && options.nSamples == 1)
                     options.checkRaveMoves();
 
                 options.resetRAVE(board.getMaxMoveId());
@@ -63,12 +63,12 @@ public class UCTPlayer implements AIPlayer {
             while (simulations < options.nSimulations) {
 
                 // Reset nSamples when doing heurisic resampling
-                if(options.resample)
+                if (options.resample)
                     options.nSamples = nSamples;
 
                 simulations += options.nSamples;
 
-                if (Options.debug)
+                if (Options.debug && options.nSamples == 1)
                     options.checkRaveMoves();
 
                 options.resetRAVE(board.getMaxMoveId());
@@ -82,8 +82,7 @@ public class UCTPlayer implements AIPlayer {
         // Return the best move found
         UCTNode bestChild = root.getBestChild();
         bestMove = bestChild.move;
-        // Pack the transpositions
-        int removed = tt.pack(1);
+
 
         // show information on the best move
         if (Options.debug) {
@@ -102,13 +101,17 @@ public class UCTPlayer implements AIPlayer {
             System.out.println("-------- </uct debug > ----------");
 
             if (options.regression) {
-                XYChart chart = getScatterPlot(bestChild.timeSeries,
-                        bestChild.state.shortRegression, bestChild.state.longRegression,
-                        bestChild.toString());
-                new SwingWrapper<>(chart).displayChart();
+                if (bestChild.timeSeries.size() > 1000) {
+                    XYChart chart = getScatterPlot(bestChild.timeSeries,
+                            bestChild.state.shortRegression, bestChild.state.longRegression,
+                            bestChild.toString());
+                    new SwingWrapper<>(chart).displayChart();
+                }
             }
 
         }
+        // Pack the transpositions
+        tt.pack(1);
         this.root = null;
         this.board = null;
         System.gc();
@@ -118,10 +121,9 @@ public class UCTPlayer implements AIPlayer {
 
     private XYChart getScatterPlot(List<Double> yData, SimpleRegression shortRegression, SimpleRegression longRegression, String name) {
         XYChart chart = new XYChartBuilder().width(800).height(600).build();
-
         // Customize Chart
-        chart.getStyler().setChartTitleVisible(false);
-        chart.getStyler().setLegendPosition(Styler.LegendPosition.InsideSW);
+        chart.getStyler().setChartTitleVisible(true);
+        chart.getStyler().setLegendPosition(Styler.LegendPosition.InsideNE);
         chart.getStyler().setMarkerSize(2);
 
         int n = yData.size();
@@ -130,8 +132,10 @@ public class UCTPlayer implements AIPlayer {
         List<Double> rData = new ArrayList<>(), lData = new ArrayList<>();
         for (int i = 0; i < 1000; i++) {
             xData.add(i);
-            rData.add(0, shortRegression.predict(n - i));
             lData.add(0, longRegression.predict(n - i));
+        }
+        for (int i = 0; i < 100; i++) {
+            rData.add(0, shortRegression.predict(n - i));
         }
         for (int i = 0; i < 25; i++) {
             xData.add(1000 + i);
@@ -141,7 +145,7 @@ public class UCTPlayer implements AIPlayer {
 
         chart.addSeries(name, xData.subList(0, 1000), yData.subList(n - 1000, n)).
                 setXYSeriesRenderStyle(XYSeries.XYSeriesRenderStyle.Scatter);
-        chart.addSeries("Short regression", xData, rData);
+        chart.addSeries("Short regression", xData.subList(xData.size() - 125, xData.size()), rData);
         chart.addSeries("Long regression", xData, lData);
         return chart;
     }

@@ -5,7 +5,7 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
 import java.text.DecimalFormat;
 
 public class State {
-    public static final DecimalFormat df2 = new DecimalFormat("###,##0.00");
+    public static final DecimalFormat df2 = new DecimalFormat("###,##0.000");
     public long hash;
     public int visits = 0, lastVisit = 0;
     public short solvedPlayer = 0;
@@ -28,12 +28,10 @@ public class State {
         visits += n;
 
         if (regression) {
-            if (visits % 100 == 0) { // TODO Check this number or put it in options
+            if (shortRegression.getN() % 200 == 0) // TODO Check this number or put it in options
                 shortRegression.clear();
-            }
-            if (visits % 1000 == 0) { // TODO Check this number or put it in options
+            if (longRegression.getN() % 1000 == 0)  // TODO Check this number or put it in options
                 longRegression.clear();
-            }
 
             shortRegression.addData(visits, sum / visits);
             longRegression.addData(visits, sum / visits);
@@ -41,8 +39,8 @@ public class State {
     }
 
     public double getRegressionValue(int steps, int player) {
-        if (shortRegression.getN() > 5)
-            return ((player == 1) ? 1 : -1) * shortRegression.predict(visits + steps); // WARN Visits + steps is correct :)
+        if (shortRegression.getN() > 10)
+            return ((player == 1) ? 1 : -1) * .5 * (shortRegression.predict(visits + steps) + longRegression.predict(visits + steps)); // WARN Visits + steps is correct :)
         else
             return 0; // Value is captured in calling method
     }

@@ -1,7 +1,7 @@
 package mcts;
 
 public class TransposTable {
-    private final int TT_SIZE = (int) Math.pow(2, 19);
+    private final int TT_SIZE = (int) Math.pow(2, 18);
     private final long MASK = TT_SIZE - 1;
     public int collisions = 0, positions = 0, recoveries = 0;
     //

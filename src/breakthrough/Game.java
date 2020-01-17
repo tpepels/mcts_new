@@ -15,10 +15,12 @@ public class Game {
         AIPlayer aiPlayer1 = new UCTPlayer();
         Options options1 = new Options();
         options1.fixedSimulations = true;
-        options1.nSimulations = 50000;
-        options1.heuristics = true;
-        //options1.MAST = true;
-        // options1.RAVE = true;
+        options1.nSimulations = 20000;
+        options1.RAVE = true;
+        options1.UCBMast = true;
+        options1.regression = true;
+        options1.nSamples = 2;
+        options1.imm = true;
         aiPlayer1.setOptions(options1);
 
         AIPlayer aiPlayer2 = new UCTPlayer();

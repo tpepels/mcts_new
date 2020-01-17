@@ -33,19 +33,25 @@ public class HexFrame extends JFrame implements UserInputListener, MoveCallback,
         Options.debug = true;
         hexPanel.drawField(board.board);
 
-        options1 = new Options();
         aiPlayer1 = new UCTPlayer();
-        aiPlayer1.setOptions(options1);
+        Options options1 = new Options();
         options1.fixedSimulations = true;
         options1.nSimulations = 20000;
-        //options1.RAVE = true;
-        // options1.MAST = true;
+        options1.RAVE = true;
+        options1.UCBMast = true;
+        options1.regression = true;
+        options1.nSamples = 2;
+        options1.imm = true;
+        aiPlayer1.setOptions(options1);
+        aiPlayer1.setMoveCallback(this);
 
         options2 = new Options();
         aiPlayer2 = new UCTPlayer();
         aiPlayer2.setOptions(options2);
         options2.fixedSimulations = true;
         options2.nSimulations = 20000;
+        options2.RAVE = true;
+        options2.MAST = true;
 
         aiPlayer1.setMoveCallback(this);
         aiPlayer2.setMoveCallback(this);
