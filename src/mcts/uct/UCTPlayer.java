@@ -29,18 +29,27 @@ public class UCTPlayer implements AIPlayer {
         if (options == null)
             throw new RuntimeException("MCTS Options not set.");
         root = new UCTNode(board.getPlayerToMove(), options, board.hash(), tt);
-        int simulations = 0;
+        int simulations = 0, nSamples = options.nSamples;
         long startT = System.currentTimeMillis();
         options.resetMAST(board.getMaxMoveId());
+
         if (!options.fixedSimulations) {
-            long endTime = System.currentTimeMillis() + options.time;
+            long endTime = System.currentTimeMillis() + options.nSimulations;
             // Run the MCTS algorithm while time allows it
             while (true) {
-                simulations++;
+
+                // Reset nSamples when doing heurisic resampling
+                if(options.resample)
+                    options.nSamples = nSamples;
+
+                simulations += options.nSamples;
+
                 if (System.currentTimeMillis() >= endTime)
                     break;
+
                 if (Options.debug)
                     options.checkRaveMoves();
+
                 options.resetRAVE(board.getMaxMoveId());
                 // Make one simulation from root to leaf.
                 root.MCTS(board.clone(), 0);
@@ -51,13 +60,19 @@ public class UCTPlayer implements AIPlayer {
         } else {
             // Run as many simulations as allowed
             while (simulations < options.nSimulations) {
-                simulations++;
+
+                // Reset nSamples when doing heurisic resampling
+                if(options.resample)
+                    options.nSamples = nSamples;
+
+                simulations += options.nSamples;
+
                 if (Options.debug)
                     options.checkRaveMoves();
+
                 options.resetRAVE(board.getMaxMoveId());
                 // Make one simulation from root to leaf.
                 root.MCTS(board.clone(), 0);
-
                 if (root.isSolved())
                     break; // Break if you find a winning move
             }
@@ -81,10 +96,11 @@ public class UCTPlayer implements AIPlayer {
             System.out.println("- best child: " + bestChild.toString(board));
             System.out.println("- # of playouts: " + simulations);
             System.out.print("- searched for: " + ((endT - startT) / 1000.) + " sec. ");
-            System.out.println((int)Math.round((1000. * simulations) / (endT - startT)) + " ppsec.");
+            System.out.println((int) Math.round((1000. * simulations) / (endT - startT)) + " ppsec.");
+            System.out.println("- collisions: " + tt.collisions + ", tps: " + tt.positions);
             System.out.println("-------- </uct debug > ----------");
 
-            if(options.regression) {
+            if (options.regression) {
                 XYChart chart = getScatterPlot(bestChild.timeSeries,
                         bestChild.state.shortRegression, bestChild.state.longRegression,
                         bestChild.toString());

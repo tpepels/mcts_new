@@ -20,12 +20,12 @@ public class State {
         this.hash = hash;
     }
 
-    public void updateStats(double[] result, boolean regression) {
+    public void updateStats(double[] result, int n, boolean regression) {
         assert !this.isSolved() : "UpdateStats called on solved position!";
 
         visited = true;
         sum += result[0];
-        visits++;
+        visits += n;
 
         if (regression) {
             if (visits % 100 == 0) { // TODO Check this number or put it in options

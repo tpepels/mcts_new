@@ -53,14 +53,14 @@ public class AmazonsBoard extends JPanel implements MouseListener, MouseMotionLi
         aiPlayer1 = new UCTPlayer();
         Options options1 = new Options();
         options1.fixedSimulations = false;
-        options1.time = 5000;
+        options1.nSimulations = 5000;
         aiPlayer1.setOptions(options1);
 
         // Definition for player 2
         aiPlayer2 = new UCTPlayer();
         Options options2 = new Options();
         options2.fixedSimulations = false;
-        options2.time = 5000;
+        options2.nSimulations = 5000;
         aiPlayer2.setOptions(options2);
         aiPlayer1.setMoveCallback(this);
         aiPlayer2.setMoveCallback(this);

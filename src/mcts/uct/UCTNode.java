@@ -1,9 +1,9 @@
 package mcts.uct;
 
+import framework.FastLog;
 import framework.IBoard;
 import framework.MoveList;
 import framework.Options;
-import framework.util.FastLog;
 import mcts.State;
 import mcts.TransposTable;
 
@@ -83,8 +83,16 @@ public class UCTNode {
             }
             // When a leaf is reached return the result of the playout
             if (!child.simulated || isTerminal()) {
-                result = child.playOut(board, depth + 1); // WARN a single copy of the board is used
-                child.updateStats(result);
+                double[] poRes;
+                for (int i = 0; i > options.nSamples; i++) {
+                    if (options.nSamples > 1)
+                        poRes = child.playOut(board.clone(), depth + 1);
+                    else
+                        poRes = child.playOut(board, depth + 1); // WARN a single copy of the board is used
+                    result[0] += poRes[0];
+                    result[1] += poRes[1];
+                }
+                child.updateStats(result, options.nSamples);
                 child.simulated = true;
             } else {
                 result = child.MCTS(board, depth + 1);
@@ -96,7 +104,7 @@ public class UCTNode {
                             continue;
 
                         if (options.isRAVEMove(player, board.getMoveId(c.move), depth)) {
-                            c.updateRAVE(result);
+                            c.updateRAVE(result, options.nSamples);
                         }
                     }
                 }
@@ -104,7 +112,8 @@ public class UCTNode {
             //
             assert result[0] != -1000 && result[1] != -1000 : "Strange result";
             if (!child.isSolved())
-                updateStats(result);
+                updateStats(result, options.nSamples);
+
             // For displaying the time-series charts
             if (Options.debug && depth == 0)
                 child.timeSeries.add(child.getValue(player));
@@ -126,16 +135,14 @@ public class UCTNode {
             for (UCTNode c : children) {
                 if (c.getValue(player) != Integer.MIN_VALUE) {
                     // Return a single loss, if not all children are a loss
-                    updateStats(result);
+                    updateStats(result, 1);
                     return result;
                 }
             }
             setSolved(3 - player); // I'm a proven win for the parent
             return result;
         }
-
         assert (result[0] > Integer.MIN_VALUE) && (result[1] > Integer.MIN_VALUE) : "Result not initialized";
-
         return result;
     }
 
@@ -371,13 +378,13 @@ public class UCTNode {
         return bestChild;
     }
 
-    private void updateStats(double[] value) {
+    private void updateStats(double[] value, int n) {
         assert value[0] > Integer.MIN_VALUE && value[1] > Integer.MIN_VALUE : "Wrong values in updateStats";
 
         if (state == null)
             state = tt.getState(hash, false);
         //
-        state.updateStats(value, options.regression);
+        state.updateStats(value, n, options.regression);
 
         // implicit minimax backups
         if (options.imm && children != null) {
@@ -438,10 +445,10 @@ public class UCTNode {
         return state.getMean(player);
     }
 
-    public void updateRAVE(double[] values) {
+    public void updateRAVE(double[] values, int n) {
         RAVEvalue[0] += values[0];
         RAVEvalue[1] += values[1];
-        RAVEVisits++;
+        RAVEVisits += n;
     }
 
     public double getRAVE(int player) {
