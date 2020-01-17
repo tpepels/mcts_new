@@ -9,13 +9,14 @@ public class Options {
     public static boolean debug = false;
 
     // Various experimental variables
-    public int nSamples = 1; // The number of samples per UCT simulation
+    public double nSamples = 1; // The number of samples per UCT simulation. It's a double because of the resample steps
     public double c = 0.8; // The UCT constant
     public boolean fixedSimulations = false; // Whether to do a timed run or a run limited by a number of simulations
     public int nSimulations = 10000; // The number of UCT simulations per turn
     public boolean heuristics = true; // Whether to use improved heuristics in playouts
+    // Parameters for resampling interesting paths
     public boolean resample = false;
-    public double resampleSteps = 1.;
+    public double resampleSteps = 1.; // Increase rate for interesting moves
 
     // Parameters for early playout termination
     public boolean earlyTerm = false; // Whether to terminate playouts before the end of the game and return a value

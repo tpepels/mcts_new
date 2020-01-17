@@ -67,7 +67,7 @@ public class UCTNode {
             else
                 child = select();
 
-        double[] result = {-1000, -1000};
+        double[] result = {0, 0};
         // (Solver) Check for proven win / loss / draw
         if (!child.isSolved()) {
             // Execute the move represented by the child
@@ -84,15 +84,17 @@ public class UCTNode {
             // When a leaf is reached return the result of the playout
             if (!child.simulated || isTerminal()) {
                 double[] poRes;
-                for (int i = 0; i > options.nSamples; i++) {
+                options.nSamples = Math.round(options.nSamples);
+                for (int i = 0; i > (int)options.nSamples; i++) {
                     if (options.nSamples > 1)
                         poRes = child.playOut(board.clone(), depth + 1);
                     else
                         poRes = child.playOut(board, depth + 1); // WARN a single copy of the board is used
+
                     result[0] += poRes[0];
                     result[1] += poRes[1];
                 }
-                child.updateStats(result, options.nSamples);
+                child.updateStats(result, (int)options.nSamples);
                 child.simulated = true;
             } else {
                 result = child.MCTS(board, depth + 1);
@@ -104,15 +106,14 @@ public class UCTNode {
                             continue;
 
                         if (options.isRAVEMove(player, board.getMoveId(c.move), depth)) {
-                            c.updateRAVE(result, options.nSamples);
+                            c.updateRAVE(result, (int)options.nSamples);
                         }
                     }
                 }
             }
-            //
-            assert result[0] != -1000 && result[1] != -1000 : "Strange result";
+
             if (!child.isSolved())
-                updateStats(result, options.nSamples);
+                updateStats(result, (int)options.nSamples);
 
             // For displaying the time-series charts
             if (Options.debug && depth == 0)

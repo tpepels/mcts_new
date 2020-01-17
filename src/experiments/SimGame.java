@@ -14,7 +14,6 @@ public class SimGame {
 
     private String p1label, p2label;
     private AIPlayer player1, player2;
-    private Options options1, options2;
     private int[] timeLimit;
     private long seed;
     private boolean printBoard, mctsDebug;
@@ -27,7 +26,7 @@ public class SimGame {
         timeLimit = new int[]{10000, 10000};
         printBoard = false;
         mctsDebug = false;
-
+        FastLog.log(1);
         seed = System.currentTimeMillis();
     }
 
@@ -128,19 +127,15 @@ public class SimGame {
         // Now, set the player
         if (player == 1) {
             player1 = playerRef;
-            options1 = options;
             player1.setOptions(options);
         } else if (player == 2) {
             player2 = playerRef;
-            options2 = options;
             player2.setOptions(options);
         }
     }
 
     public void run() {
-
-        System.out.println("Starting game simulation...");
-
+        System.out.println("Starting game.");
         System.out.println("P1: " + p1label);
         System.out.println("P2: " + p2label);
         System.out.println("");
@@ -151,12 +146,9 @@ public class SimGame {
         loadPlayer(1, p1label);
         loadPlayer(2, p2label);
 
-        FastLog.log(1f);
-
         while (board.checkWin() == Board.NONE_WIN) {
             if (printBoard)
-                System.out.println(board.toString())
-                        ;
+                System.out.println(board);
             AIPlayer aiPlayer = (board.getPlayerToMove() == 1 ? player1 : player2);
             System.gc();
             aiPlayer.getMove(board.clone());

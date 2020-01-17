@@ -29,7 +29,8 @@ public class UCTPlayer implements AIPlayer {
         if (options == null)
             throw new RuntimeException("MCTS Options not set.");
         root = new UCTNode(board.getPlayerToMove(), options, board.hash(), tt);
-        int simulations = 0, nSamples = options.nSamples;
+        int simulations = 0;
+        double nSamples = options.nSamples;
         long startT = System.currentTimeMillis();
         options.resetMAST(board.getMaxMoveId());
 

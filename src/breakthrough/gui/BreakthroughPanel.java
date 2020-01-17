@@ -45,10 +45,8 @@ public class BreakthroughPanel extends JPanel implements MouseListener, MouseMot
         Options options1 = new Options();
         options1.fixedSimulations = true;
         options1.nSimulations = 100000;
-        options1.heuristics = true;
         options1.RAVE = true;
         options1.imm = true;
-        options1.earlyTerm = true;
         aiPlayer1.setOptions(options1);
         aiPlayer1.setMoveCallback(this);
 
@@ -56,7 +54,6 @@ public class BreakthroughPanel extends JPanel implements MouseListener, MouseMot
         Options options2 = new Options();
         options2.fixedSimulations = true;
         options2.nSimulations = 100000;
-        options2.heuristics = true;
         options2.RAVE = true;
         options2.imm = true;
         aiPlayer2.setOptions(options1);
