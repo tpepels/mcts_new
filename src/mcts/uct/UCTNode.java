@@ -168,15 +168,11 @@ public class UCTNode {
         // Add all moves as children to the current node
         for (int i = 0; i < moves.size(); i++) {
             move = moves.get(i);
-
             IBoard tempBoard = board.clone();
             tempBoard.doMove(move);
-
             UCTNode child = new UCTNode(3 - player, move, options, tempBoard.hash(), tt);
-
             if (Options.debug)
                 child.boardString = tempBoard.toString();
-
             // We've expanded an already proven won node
             if (child.isSolved() && child.getValue(player) == Integer.MAX_VALUE)
                 winNode = child;
@@ -198,17 +194,14 @@ public class UCTNode {
                 } else // IM Value was already determined elsewhere in the tree
                     imVal = child.getImValue(player);
 
-                if (imVal > best_imVal)
-                    best_imVal = imVal;
+                best_imVal = Math.max(best_imVal, imVal);
             }
             children.add(child);
         }
         expanded = true;
-
         // Back-propagate the best IM value
         if (options.imm)
             setImValue(best_imVal, player);
-
         // If one of the nodes is a win, return it.
         return winNode;
     }
@@ -255,8 +248,8 @@ public class UCTNode {
                     val = (1. - options.imAlpha) * val + (options.imAlpha * imVal);
                 }
 
-                if (options.RAVE && c.RAVEVisits > 0) {
-                    double beta = Math.sqrt(options.k / ((3 * c.getVisits()) + options.k));
+                if (options.RAVE && c.RAVEVisits > 1) {
+                    double beta = Math.sqrt(options.k / ((3 * getVisits()) + options.k));
                     val = (beta * c.getRAVE(player)) + ((1 - beta) * val);
                 }
 
@@ -276,12 +269,13 @@ public class UCTNode {
     private double[] playOut(IBoard board, int depth) {
         int winner = board.checkWin(), nMoves = 0, moveIndex, pl;
         assert winner == IBoard.NONE_WIN || winner == IBoard.DRAW : "Board in won position in playout.";
-
+        // int lastMove, winMove;
         int[] move;
         boolean interrupted = false;
         MoveList moves;
-        double mastMax, mastVal;
+        double mastMax, mastVal, mastVis;
         board.startPlayout();
+
         do {
             moves = board.getPlayoutMoves(options.heuristics);
             pl = board.getPlayerToMove();
@@ -293,7 +287,11 @@ public class UCTNode {
                 mastMax = Double.NEGATIVE_INFINITY;
                 // Select the move with the highest MAST value
                 for (int i = 0; i < moves.size(); i++) {
+                    mastVis = options.getMASTVisits(pl, board.getMoveId(moves.get(i)));
                     mastVal = options.getMASTValue(pl, board.getMoveId(moves.get(i)));
+                    // Make sure to have visited all moves first
+                    if(mastVis < 5)
+                        mastVal = 1. + Options.r.nextDouble();
                     // If bigger, we have a winner, if equal, flip a coin
                     if (mastVal > mastMax) {
                         mastMax = mastVal;
@@ -305,9 +303,12 @@ public class UCTNode {
                 mastMax = Double.NEGATIVE_INFINITY;
                 // Select the move with the highest MAST value
                 for (int i = 0; i < moves.size(); i++) {
+                    mastVis = options.getMASTVisits(pl, board.getMoveId(moves.get(i)));
                     mastVal = options.getMASTValue(pl, board.getMoveId(moves.get(i))) +
-                            Math.sqrt((2.0 * Math.log(options.totalHistVis[pl - 1])) /
-                                    options.getMASTVisits(pl, board.getMoveId(moves.get(i))));
+                            Math.sqrt(2.0 * (Math.log(options.totalHistVis[pl - 1]) / mastVis));
+                    // Make sure to have visited all moves first
+                    if(mastVis < 5)
+                        mastVal = 1. + Options.r.nextDouble();
                     // If bigger, we have a winner, if equal, flip a coin
                     if (mastVal > mastMax) {
                         mastMax = mastVal;
@@ -316,11 +317,14 @@ public class UCTNode {
                 }
             }
             move = moves.get(moveIndex);
+
             ++nMoves;
+
             if (options.RAVE) // Insert the rave and mast move before the play is made to get the correct player to move
-                options.addRAVEMove(board.getPlayerToMove(), board.getMoveId(move), depth + nMoves);
+                options.addRAVEMove(pl, board.getMoveId(move), depth + nMoves);
             if (options.MAST)
-                options.addMASTMove(board.getPlayerToMove(), board.getMoveId(move));
+                options.addMASTMove(pl, board.getMoveId(move));
+
             board.doMove(move);
             winner = board.checkWin();
             // Interrupt playout for early evaluation
@@ -336,16 +340,13 @@ public class UCTNode {
                 score[winner - 1] += options.etWv;
                 score[(3 - winner) - 1] -= options.etWv;
             } else {
-                double eval = board.evaluate(1); // TODO - Is it better to include the value of the evaluation here?
+                double eval = board.evaluate(1); // TODO - This value should be between 0 and 1
                 score[0] = eval;
                 score[1] = -eval;
             }
         } else if (winner != IBoard.DRAW) {
             score[winner - 1] = 1;
             score[(3 - winner) - 1] = -1;
-        } else {
-            score[0] = 0;
-            score[1] = 0;
         }
 
         if (options.MAST || options.UCBMast)
@@ -357,8 +358,20 @@ public class UCTNode {
     public UCTNode getBestChild() {
         if (children == null)
             return null;
+
         double max = Double.NEGATIVE_INFINITY, value;
         UCTNode bestChild = null;
+        double minIm = Integer.MAX_VALUE, maxIm = Integer.MIN_VALUE;
+        if (options.imm) {
+            double val;
+            // Check the highest and lowest evaluation for normalization
+            for (UCTNode c : children) {
+                val = c.getImValue(player);
+                maxIm = Math.max(val, maxIm);
+                minIm = Math.min(val, minIm);
+            }
+        }
+
         for (UCTNode c : children) {
             // If there are children with INF value, choose one of them
             if (c.getValue(player) == Integer.MAX_VALUE)
@@ -366,7 +379,11 @@ public class UCTNode {
             else if (c.getValue(player) == Integer.MIN_VALUE)
                 value = Integer.MIN_VALUE + c.getVisits() + Options.r.nextDouble();
             else {
-                value = c.getVisits();
+                if(options.imm) {
+                    double imVal = (c.getImValue(player) - minIm) / (maxIm - minIm);
+                    value = (1. - options.imAlpha) * c.getValue(player) + (options.imAlpha * imVal);
+                } else
+                    value = c.getValue(player);
             }
 
             if (value > max) {
@@ -389,9 +406,8 @@ public class UCTNode {
         if (options.imm && children != null) {
             double bestVal = Integer.MIN_VALUE;
             for (UCTNode c : children) {
-                if (c.getImValue(player) > bestVal) {
+                if (c.getImValue(player) > bestVal)
                     bestVal = c.getImValue(player);
-                }
             }
             setImValue(bestVal, player);
         }

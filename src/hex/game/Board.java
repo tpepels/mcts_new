@@ -59,9 +59,8 @@ public class Board implements IBoard {
 
     @Override
     public void doMove(int[] move) {
-        if (winner != NONE_WIN) {
+        if (winner != NONE_WIN)
             return;
-        }
 
         zbHash ^= zbnums[move[0]][move[1]][0]; // Hash out the empty
         zbHash ^= zbnums[move[0]][move[1]][currentPlayer]; // Hash in the player

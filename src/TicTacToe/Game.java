@@ -18,7 +18,6 @@ public class Game {
         Options options1 = new Options();
         options1.fixedSimulations = true;
         options1.nSimulations = 30000;
-        options1.imm = true;
         aiPlayer1.setOptions(options1);
 
         AIPlayer aiPlayer2 = new UCTPlayer();

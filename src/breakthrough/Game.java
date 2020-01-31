@@ -3,6 +3,7 @@ package breakthrough;
 import breakthrough.game.Board;
 import framework.AIPlayer;
 import framework.Options;
+import framework.PlayerFactory;
 import mcts.uct.UCTPlayer;
 
 public class Game {
@@ -12,23 +13,8 @@ public class Game {
         b.initialize();
         Options.debug = true;
 
-        AIPlayer aiPlayer1 = new UCTPlayer();
-        Options options1 = new Options();
-        options1.fixedSimulations = true;
-        options1.nSimulations = 20000;
-        options1.RAVE = true;
-        options1.UCBMast = true;
-        options1.regression = true;
-        options1.nSamples = 2;
-        options1.imm = true;
-        aiPlayer1.setOptions(options1);
-
-        AIPlayer aiPlayer2 = new UCTPlayer();
-        Options options2 = new Options();
-        options2.fixedSimulations = true;
-        options2.nSimulations = 50000;
-        options2.heuristics = true;
-        aiPlayer2.setOptions(options2);
+        AIPlayer aiPlayer1 = PlayerFactory.getPlayer(1, "breakthrough");
+        AIPlayer aiPlayer2 = PlayerFactory.getPlayer(2, "breakthrough");
 
         AIPlayer aiPlayer;
         int[] m;

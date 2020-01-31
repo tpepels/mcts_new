@@ -306,26 +306,15 @@ public class Board implements IBoard {
 
     @Override
     public double evaluate(int player) { // TODO Evaluation very negative for P1
-        int p1eval = 10 * (nPieces1 - nPieces2);
-        p1eval += lorentzPV1 - lorentzPV2;
-        // Check for piece safety
-        for (int i = 0; i < pieces[0].length; i++) {
-            if (pieces[0][i] == CAPTURED)
-                continue;
-
-            if (isSafe(pieces[0][i], pieces[0][i], 1))
-                p1eval += .5 * lorentzValues[63 - pieces[0][i]];
+        int eval = 0;
+        if(player == 1) {
+            eval = 10 * (nPieces1 - nPieces2);
+            eval += lorentzPV1 - lorentzPV2;
+        } else {
+            eval = 10 * (nPieces2 - nPieces1);
+            eval += lorentzPV2 - lorentzPV1;
         }
-        // Player 2 piece safety
-        for (int i = 0; i < pieces[1].length; i++) {
-            if (pieces[1][i] == CAPTURED)
-                continue;
-
-            if (isSafe(pieces[1][i], pieces[1][i], 2))
-                p1eval -= .5 * lorentzValues[pieces[1][i]];
-        }
-
-        return (player == 1 ? p1eval : -p1eval);
+        return eval;
     }
 
     private void recomputeProgress(int player) {

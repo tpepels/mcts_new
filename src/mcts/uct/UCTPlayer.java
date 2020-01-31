@@ -111,7 +111,7 @@ public class UCTPlayer implements AIPlayer {
 
         }
         // Pack the transpositions
-        tt.pack(1);
+        tt.pack(options.trans_offset);
         this.root = null;
         this.board = null;
         System.gc();

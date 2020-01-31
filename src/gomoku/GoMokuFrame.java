@@ -1,10 +1,7 @@
 package gomoku;
 
+import framework.*;
 import gomoku.game.Board;
-import framework.AIPlayer;
-import framework.MoveCallback;
-import framework.MoveList;
-import framework.Options;
 import mcts.uct.UCTPlayer;
 
 import javax.swing.*;
@@ -21,7 +18,7 @@ public class GoMokuFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         goMokuPanel = new GoMokuPanel(this);
         setContentPane(goMokuPanel);
-        int size = 2 * goMokuPanel.offset + (7 * goMokuPanel.squareSize);
+        int size = 2 * goMokuPanel.offset + (11 * goMokuPanel.squareSize);
         setSize(size, size + goMokuPanel.squareSize);
         this.addKeyListener(goMokuPanel);
         goMokuPanel.aiMove();
@@ -36,7 +33,6 @@ public class GoMokuFrame extends JFrame {
         private final JFrame frame;
         int offset = 40, squareSize = 50, winner = Board.NONE_WIN;
         AIPlayer aiPlayer1, aiPlayer2;
-        Options options1, options2;
         boolean aiThinking = true;
         int boardCol = -1, boardRow = -1;
         private int humanPlayer = 2;
@@ -44,29 +40,13 @@ public class GoMokuFrame extends JFrame {
         private MoveList legalMoves;
 
         public GoMokuPanel(JFrame frame) {
-            board = new Board(7);
+            board = new Board(9);
             this.frame = frame;
             board.initialize();
             legalMoves = board.getExpandMoves();
             Options.debug = true;
-
-            options1 = new Options();
-            aiPlayer1 = new UCTPlayer();
-            aiPlayer1.setOptions(options1);
-            options1.fixedSimulations = true;
-            options1.nSimulations = 50000;
-            options1.heuristics = false;
-            //options1.RAVE = true;
-            //options1.MAST = true;
-            //options1.imm = true;
-
-            options2 = new Options();
-            aiPlayer2 = new UCTPlayer();
-            aiPlayer2.setOptions(options2);
-            options2.fixedSimulations = true;
-            options2.nSimulations = 50000;
-            options2 .heuristics = false;
-
+            aiPlayer1 = PlayerFactory.getPlayer(1, "gomoku");
+            aiPlayer2 = PlayerFactory.getPlayer(2, "gomoku");
             aiPlayer1.setMoveCallback(this);
             aiPlayer2.setMoveCallback(this);
             addMouseListener(this);
@@ -150,22 +130,6 @@ public class GoMokuFrame extends JFrame {
                     }
                 }
             }
-            if (options1.MAST) {
-                g.setColor(Color.black);
-                for (int i = 0; i < board.size; i++) {
-                    for (int j = 0; j < board.size; j++) {
-                        occ = board.board[j][i];
-                        if (occ != 0)
-                            continue;
-
-                        x = offset + (i * squareSize);
-                        y = offset + (j * squareSize);
-                        String MAST = String.format("%1$,.2f", options1.getMASTValue(1, board.getMoveId(new int[]{i, j})));
-                        g.drawString(MAST, x, y);
-                    }
-                }
-            }
-
             g.setColor(Color.lightGray);
             if (boardCol < board.size && boardRow < board.size) {
                 x = offset + (boardCol * squareSize);

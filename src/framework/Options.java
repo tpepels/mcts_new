@@ -17,6 +17,8 @@ public class Options {
     // Parameters for resampling interesting paths
     public boolean resample = false;
     public double resampleSteps = 1.; // Increase rate for interesting moves
+    // How many moves should positions remain in the transposition table?
+    public int trans_offset = 0;
 
     // Parameters for early playout termination
     public boolean earlyTerm = false; // Whether to terminate playouts before the end of the game and return a value
@@ -79,7 +81,7 @@ public class Options {
     }
 
     public double getMASTVisits(int player, int moveId) {
-        return (double) histVis[player - 1][moveId];
+        return histVis[player - 1][moveId];
     }
 
     public void addMASTMove(int player, int moveId) {
@@ -94,6 +96,41 @@ public class Options {
                 totalHistVis[k]++;
             }
             moveLists[k].clear();
+        }
+    }
+
+    public void setGame(String game) {
+        switch (game) {
+            case "amazons": {
+                c = .4;
+                break;
+            }
+            case "atarigo": {
+                c = .6;
+                RAVE = true;
+                k = 200;
+                break;
+            }
+            case "breakthrough": {
+                c = .8;
+                RAVE = true;
+                k = 100;
+                break;
+            }
+            case "gomoku": {
+                RAVE = true;
+                k = 200;
+                c = .6;
+                break;
+            }
+            case "hex": {
+                RAVE = true;
+                k = 500;
+                c = .6;
+                break;
+            }
+            default:
+                throw new RuntimeException("Invalid game " + game);
         }
     }
 }

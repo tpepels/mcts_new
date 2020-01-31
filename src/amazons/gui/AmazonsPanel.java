@@ -5,6 +5,7 @@ import amazons.game.Board;
 import framework.AIPlayer;
 import framework.MoveCallback;
 import framework.Options;
+import framework.PlayerFactory;
 import framework.gui.GuiOptions;
 import mcts.uct.UCTPlayer;
 
@@ -15,7 +16,7 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 
-public class AmazonsBoard extends JPanel implements MouseListener, MouseMotionListener, MoveCallback, KeyListener {
+public class AmazonsPanel extends JPanel implements MouseListener, MouseMotionListener, MoveCallback, KeyListener {
     private static final long serialVersionUID = 1L;
     private final JFrame frame;
     private final int[] moves = new int[40];
@@ -27,7 +28,7 @@ public class AmazonsBoard extends JPanel implements MouseListener, MouseMotionLi
     private Image whiteQueen, blackQueen;
     private boolean aiThinking = false;
 
-    public AmazonsBoard(int squareSize, JFrame frame) {
+    public AmazonsPanel(int squareSize, JFrame frame) {
         this.squareSize = squareSize;
         this.frame = frame;
         board = new Board();
@@ -48,24 +49,13 @@ public class AmazonsBoard extends JPanel implements MouseListener, MouseMotionLi
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Options.debug = true;
-        // Definition for player 1
-        aiPlayer1 = new UCTPlayer();
-        Options options1 = new Options();
-        options1.fixedSimulations = false;
-        options1.nSimulations = 5000;
-        aiPlayer1.setOptions(options1);
 
-        // Definition for player 2
-        aiPlayer2 = new UCTPlayer();
-        Options options2 = new Options();
-        options2.fixedSimulations = false;
-        options2.nSimulations = 5000;
-        aiPlayer2.setOptions(options2);
+        aiPlayer1 = PlayerFactory.getPlayer(1, "amazons");
+        aiPlayer2 = PlayerFactory.getPlayer(2, "amazons");
+
         aiPlayer1.setMoveCallback(this);
         aiPlayer2.setMoveCallback(this);
         repaint();
-        //
         aiMove();
     }
 

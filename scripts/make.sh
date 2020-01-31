@@ -9,4 +9,3 @@ done
 
 files=`find build -name *.java`
 javac -cp build $files
-

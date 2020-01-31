@@ -1,10 +1,7 @@
 package atarigo;
 
 import atarigo.game.Board;
-import framework.AIPlayer;
-import framework.MoveCallback;
-import framework.MoveList;
-import framework.Options;
+import framework.*;
 import mcts.uct.UCTPlayer;
 
 import javax.swing.*;
@@ -13,15 +10,15 @@ import java.awt.event.*;
 
 public class AtariGoFrame extends JFrame {
     private static final long serialVersionUID = 1L;
-    public static NogoPanel nogoPanel;
+    public static AtariGoPanel nogoPanel;
 
     public AtariGoFrame() {
         setResizable(false);
         setVisible(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        nogoPanel = new NogoPanel(this);
+        nogoPanel = new AtariGoPanel(this);
         setContentPane(nogoPanel);
-        int size = 2 * nogoPanel.offset + (7 * nogoPanel.squareSize);
+        int size = 2 * nogoPanel.offset + (11 * nogoPanel.squareSize);
         setSize(size, size + nogoPanel.squareSize);
         this.addKeyListener(nogoPanel);
         nogoPanel.aiMove();
@@ -31,40 +28,26 @@ public class AtariGoFrame extends JFrame {
         (new AtariGoFrame()).setVisible(true);
     }
 
-    private class NogoPanel extends JPanel implements MouseListener, MouseMotionListener, MoveCallback, KeyListener {
+    private class AtariGoPanel extends JPanel implements MouseListener, MouseMotionListener, MoveCallback, KeyListener {
         private final Board board;
         private final JFrame frame;
         int offset = 40, squareSize = 50, winner = Board.NONE_WIN;
         AIPlayer aiPlayer1, aiPlayer2;
-        Options options1, options2;
         boolean aiThinking = true;
         int boardCol = -1, boardRow = -1;
         private int humanPlayer = 2;
         private boolean allHuman = false, allAi = true;
         private MoveList legalMoves;
 
-        public NogoPanel(JFrame frame) {
-            board = new Board(7);
+        public AtariGoPanel(JFrame frame) {
+            board = new Board(9);
             this.frame = frame;
             board.initialize();
             legalMoves = board.getExpandMoves();
             Options.debug = true;
 
-            options1 = new Options();
-            aiPlayer1 = new UCTPlayer();
-            aiPlayer1.setOptions(options1);
-            options1.fixedSimulations = true;
-            options1.nSimulations = 50000;
-            // options1.RAVE = true;
-            // options1.MAST = true;
-            // options1.imm = true;
-            options1.regression = true;
-
-            options2 = new Options();
-            aiPlayer2 = new UCTPlayer();
-            aiPlayer2.setOptions(options2);
-            options2.fixedSimulations = true;
-            options2.nSimulations = 50000;
+            aiPlayer1 = PlayerFactory.getPlayer(1 ,"atarigo");
+            aiPlayer2 = PlayerFactory.getPlayer(2, "atarigo");
 
             aiPlayer1.setMoveCallback(this);
             aiPlayer2.setMoveCallback(this);
@@ -153,21 +136,6 @@ public class AtariGoFrame extends JFrame {
                     } else {
                         g.setColor(Color.BLACK);
                         g.drawString(board.emptyLiberty[0][j][i] + "/" + board.emptyLiberty[1][j][i], x, y - 10);
-                    }
-                }
-            }
-            if (options1.MAST) {
-                g.setColor(Color.black);
-                for (int i = 0; i < board.size; i++) {
-                    for (int j = 0; j < board.size; j++) {
-                        occ = board.board[j][i];
-                        if (occ != 0)
-                            continue;
-
-                        x = offset + (i * squareSize);
-                        y = offset + (j * squareSize);
-                        String MAST = String.format("%1$,.2f", options1.getMASTValue(1, board.getMoveId(new int[]{i, j})));
-                        g.drawString(MAST, x, y);
                     }
                 }
             }

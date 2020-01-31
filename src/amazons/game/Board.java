@@ -108,7 +108,7 @@ public class Board implements IBoard {
 
     @Override
     public int getMoveId(int[] move) {
-        return move[0] + 64 * move[1] + 128 * move[3];
+        return move[0] + 64 * move[1] + 128 * move[2];
     }
 
     @Override

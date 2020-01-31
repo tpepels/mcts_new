@@ -1,10 +1,7 @@
 package breakthrough.gui;
 
 import breakthrough.game.Board;
-import framework.AIPlayer;
-import framework.MoveCallback;
-import framework.MoveList;
-import framework.Options;
+import framework.*;
 import framework.gui.GuiOptions;
 import mcts.uct.UCTPlayer;
 
@@ -41,24 +38,9 @@ public class BreakthroughPanel extends JPanel implements MouseListener, MouseMot
 
         moves = board.getExpandMoves();
         Options.debug = true;
-        aiPlayer1 = new UCTPlayer();
-        Options options1 = new Options();
-        options1.fixedSimulations = true;
-        options1.nSimulations = 100000;
-        options1.RAVE = true;
-        options1.UCBMast = true;
-        options1.regression = true;
-        options1.nSamples = 3;
-        options1.imm = true;
-        options1.earlyTerm  = true;
-        aiPlayer1.setOptions(options1);
+        aiPlayer1 = PlayerFactory.getPlayer(1, "breakthrough");
+        aiPlayer2 = PlayerFactory.getPlayer(2, "breakthrough");
         aiPlayer1.setMoveCallback(this);
-
-        aiPlayer2 = new UCTPlayer();
-        Options options2 = new Options();
-        options2.fixedSimulations = true;
-        options2.nSimulations = 100000;
-        aiPlayer2.setOptions(options1);
         aiPlayer2.setMoveCallback(this);
     }
 

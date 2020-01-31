@@ -3,6 +3,7 @@ package hex.ui;
 import framework.AIPlayer;
 import framework.MoveCallback;
 import framework.Options;
+import framework.PlayerFactory;
 import hex.game.Board;
 import mcts.uct.UCTPlayer;
 
@@ -16,7 +17,6 @@ public class HexFrame extends JFrame implements UserInputListener, MoveCallback,
     int winner = Board.NONE_WIN;
     private Board board;
     private AIPlayer aiPlayer1, aiPlayer2;
-    private Options options1, options2;
     private boolean aiThinking = false;
 
     public HexFrame() {
@@ -30,28 +30,10 @@ public class HexFrame extends JFrame implements UserInputListener, MoveCallback,
         setContentPane(hexPanel);
         board = new Board(9);
         board.initialize();
-        Options.debug = true;
         hexPanel.drawField(board.board);
 
-        aiPlayer1 = new UCTPlayer();
-        Options options1 = new Options();
-        options1.fixedSimulations = true;
-        options1.nSimulations = 20000;
-        options1.RAVE = true;
-        options1.UCBMast = true;
-        options1.regression = true;
-        options1.nSamples = 2;
-        options1.imm = true;
-        aiPlayer1.setOptions(options1);
-        aiPlayer1.setMoveCallback(this);
-
-        options2 = new Options();
-        aiPlayer2 = new UCTPlayer();
-        aiPlayer2.setOptions(options2);
-        options2.fixedSimulations = true;
-        options2.nSimulations = 20000;
-        options2.RAVE = true;
-        options2.MAST = true;
+        aiPlayer1 = PlayerFactory.getPlayer(1, "hex");
+        aiPlayer2 = PlayerFactory.getPlayer(2, "hex");
 
         aiPlayer1.setMoveCallback(this);
         aiPlayer2.setMoveCallback(this);

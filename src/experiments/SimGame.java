@@ -1,8 +1,8 @@
 package experiments;
 
-import breakthrough.game.Board;
 import framework.AIPlayer;
 import framework.FastLog;
+import framework.IBoard;
 import framework.Options;
 import mcts.uct.UCTPlayer;
 
@@ -17,13 +17,15 @@ public class SimGame {
     private int[] timeLimit;
     private long seed;
     private boolean printBoard, mctsDebug;
+    private String game = "";
+    private IBoard board;
 
     public SimGame() {
         p1label = "none specified";
         p2label = "none specified";
         player1 = null;
         player2 = null;
-        timeLimit = new int[]{10000, 10000};
+        timeLimit = new int[]{ 10000, 10000 };
         printBoard = false;
         mctsDebug = false;
         FastLog.log(1);
@@ -56,6 +58,7 @@ public class SimGame {
                 printBoard = true;
             } else if (args[i].equals("--game")) {
                 i++;
+                game = args[i];
             } else {
                 throw new RuntimeException("Unknown option: " + args[i]);
             }
@@ -67,8 +70,10 @@ public class SimGame {
 
         String[] parts = label.split("_");
         Options options = new Options();
+        options.setGame(game);
         Options.debug = mctsDebug; // false by default
         options.nSimulations = timeLimit[player - 1];
+        options.heuristics = true;
 
         if (parts[0].equals("uct")) {
             playerRef = new UCTPlayer();
@@ -81,7 +86,7 @@ public class SimGame {
             String tag = parts[i];
             if (tag.equals("nh")) {
                 options.heuristics = false;
-            } else if (tag.equals("s")) {
+            } else if (tag.startsWith("s")) {
                 options.nSimulations = Integer.parseInt(tag.substring(1));
             } else if (tag.equals("f")) {
                 options.fixedSimulations = true;
@@ -116,10 +121,12 @@ public class SimGame {
                 options.MAST = true;
             } else if (tag.startsWith("UM")) {
                 options.UCBMast = true;
-            } else if (tag.equals("R")) {
+            } else if (tag.startsWith("R")) {
                 options.RAVE = true;
                 if (tag.length() > 1)
                     options.k = Integer.parseInt(tag.substring(1));
+            } else if (tag.startsWith("tto")) {
+                options.trans_offset = Integer.parseInt(tag.substring(3));
             } else {
                 throw new RuntimeException("Unrecognized tag: " + tag);
             }
@@ -134,19 +141,35 @@ public class SimGame {
         }
     }
 
+    public void loadGame() {
+        if (game.equals("amazons")) {
+            board = new amazons.game.Board();
+        } else if (game.equals("atarigo")) {
+            board = new atarigo.game.Board(9);
+        } else if (game.equals("breakthrough")) {
+            board = new breakthrough.game.Board();
+        } else if (game.equals("gomoku")) {
+            board = new gomoku.game.Board(9);
+        } else if (game.equals("hex")) {
+            board = new hex.game.Board(11);
+        } else {
+            throw new RuntimeException("Unrecognized game: " + game);
+        }
+        board.initialize();
+    }
+
     public void run() {
         System.out.println("Starting game.");
         System.out.println("P1: " + p1label);
         System.out.println("P2: " + p2label);
         System.out.println("");
 
-        Board board = new Board();
-        board.initialize();
+        loadGame();
 
         loadPlayer(1, p1label);
         loadPlayer(2, p2label);
 
-        while (board.checkWin() == Board.NONE_WIN) {
+        while (board.checkWin() == IBoard.NONE_WIN) {
             if (printBoard)
                 System.out.println(board);
             AIPlayer aiPlayer = (board.getPlayerToMove() == 1 ? player1 : player2);
