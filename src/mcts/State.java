@@ -22,27 +22,35 @@ public class State {
 
     public void updateStats(double[] result, int n, boolean regression) {
         assert !this.isSolved() : "UpdateStats called on solved position!";
+        if (regression) {
+            if (shortRegression.getN() + 1 % 100 == 0) {// TODO Check this number or put it in options
+                shortRegression.clear();
+                shortRegression.addData(visits, sum / visits);
+            }
+            if (longRegression.getN() + 1 % 500 == 0) { // TODO Check this number or put it in options
+                longRegression.clear();
+                longRegression.addData(visits, sum / visits);
+            }
+        }
 
         visited = true;
         sum += result[0];
         visits += n;
 
         if (regression) {
-            if (shortRegression.getN() % 200 == 0) // TODO Check this number or put it in options
-                shortRegression.clear();
-            if (longRegression.getN() % 1000 == 0)  // TODO Check this number or put it in options
-                longRegression.clear();
-
             shortRegression.addData(visits, sum / visits);
             longRegression.addData(visits, sum / visits);
         }
     }
 
     public double getRegressionValue(int steps, int player) {
-        if (shortRegression.getN() > 10)
-            return ((player == 1) ? 1 : -1) * .5 * (shortRegression.predict(visits + steps) + longRegression.predict(visits + steps)); // WARN Visits + steps is correct :)
+        if (shortRegression.getN() > 1)
+            return ((player == 1) ? 1 : -1) *
+                    ((.8 * (shortRegression.predict(visits + steps)) +
+                            (0.9 * longRegression.predict(visits + steps))));
+                // WARN Visits + steps is correct :)
         else
-            return 0; // Value is captured in calling method
+            return Integer.MIN_VALUE; // Value is captured in calling method
     }
 
     public double getMean(int player) {
