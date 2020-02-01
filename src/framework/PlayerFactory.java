@@ -14,8 +14,7 @@ public class PlayerFactory {
         if(p == 1) {
             options.fixedSimulations = false;
             options.nSimulations = 10000;
-            options.imm = true;
-            options.imAlpha = 0.2;
+            options.regression = true;
         } else if (p == 2) {
             options.fixedSimulations = false;
             options.nSimulations = 10000;

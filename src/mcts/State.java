@@ -47,7 +47,7 @@ public class State {
         if (shortRegression.getN() > 1)
             return ((player == 1) ? 1 : -1) *
                     ((.8 * (shortRegression.predict(visits + steps)) +
-                            (0.9 * longRegression.predict(visits + steps))));
+                            (.2 * longRegression.predict(visits + steps))));
                 // WARN Visits + steps is correct :)
         else
             return Integer.MIN_VALUE; // Value is captured in calling method
