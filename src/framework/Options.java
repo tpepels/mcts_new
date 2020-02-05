@@ -112,6 +112,7 @@ public class Options {
                 c = .4;
                 RAVE = true;
                 k = 20;
+                MAST = true;
                 break;
             }
             case "breakthrough": {
