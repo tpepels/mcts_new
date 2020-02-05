@@ -1,5 +1,5 @@
 #!/bin/sh
-dirs="amazons atarigo gomoku hex TicTacToe breakthrough experiments framework mcts"
+dirs="amazons atarigo gomoku hex TicTacToe breakthrough experiments framework mcts lib"
 
 for d in $dirs
 do
@@ -8,4 +8,5 @@ do
 done
 
 files=`find build -name *.java`
-javac -cp build $files
+javac -cp "lib/*" $files
+

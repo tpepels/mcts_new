@@ -240,7 +240,8 @@ public class Board implements IBoard {
         if (nMoves < 2)
             return 0;
 
-        int maxMe = 0, maxOpp = 0, n;
+        double maxMe = 0, maxOpp = 0;
+        double n;
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
                 if (board[y][x] != 0) {
@@ -258,17 +259,17 @@ public class Board implements IBoard {
             }
         }
         // System.out.println(player + " max " + maxMe + " " + (3 - player) + " max " + maxOpp);
-        return maxMe - maxOpp;
+        return Math.tanh(maxMe - maxOpp);
     }
 
-    private int checkLongest(int i, int j, int pl) {
-        int c = 1, max = 1;
+    private double checkLongest(int i, int j, int pl) {
+        double c = 1, max = 1;
         // x - 1 y - 1
         for (int x = i - 1, y = j - 1; x > 0 && y > 0; y--, x--) {
             if (board[y][x] == pl) {
                 c++;
             } else if (board[y][x] != 0) {
-                c = Math.max(1, c - 1);
+                c = Math.max(1, c - .5);
                 break;
             } else
                 break;
@@ -278,7 +279,7 @@ public class Board implements IBoard {
             if (board[y][x] == pl) {
                 c++;
             } else if (board[y][x] != 0) {
-                c = Math.max(1, c - 1);
+                c = Math.max(1, c - .5);
                 break;
             }else
                 break;
@@ -290,7 +291,7 @@ public class Board implements IBoard {
             if (board[j][x] == pl) {
                 c++;
             } else if (board[j][x] != 0) {
-                c = Math.max(1, c - 1);
+                c = Math.max(1, c - .5);
                 break;
             } else
                 break;
@@ -300,7 +301,7 @@ public class Board implements IBoard {
             if (board[j][x] == pl) {
                 c++;
             } else if (board[j][x] != 0) {
-                c = Math.max(1, c - 1);
+                c = Math.max(1, c - .5);
                 break;
             } else
                 break;
@@ -312,7 +313,7 @@ public class Board implements IBoard {
             if (board[y][i] == pl) {
                 c++;
             } else if (board[y][i] != 0) {
-                c = Math.max(1, c - 1);
+                c = Math.max(1, c - .5);
                 break;
             } else
                 break;
@@ -322,7 +323,7 @@ public class Board implements IBoard {
             if (board[y][i] == pl) {
                 c++;
             } else if (board[y][i] != 0) {
-                c = Math.max(1, c - 1);
+                c = Math.max(1, c - .5);
                 break;
             } else
                 break;
@@ -334,7 +335,7 @@ public class Board implements IBoard {
             if (board[y][x] == pl) {
                 c++;
             } else if (board[y][x] != 0) {
-                c = Math.max(1, c - 1);
+                c = Math.max(1, c - .5);
                 break;
             } else
                 break;
@@ -344,7 +345,7 @@ public class Board implements IBoard {
             if (board[y][x] == pl) {
                 c++;
             } else if (board[y][x] != 0) {
-                c = Math.max(1, c - 1);
+                c = Math.max(1, c - .5);
                 break;
             } else
                 break;

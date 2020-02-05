@@ -229,7 +229,7 @@ foreach my $match (sort keys %matchmap) {
   #print "$left " . $wins{$left} . ", $right " . $wins{$right} . ", ties = $ties, total = $total. $statsline\n"; 
   my $lwinscount = sprintf("(%d)", $wins{$left});
   my $rwinscount = sprintf("(%d)", $wins{$right});
-  printf("%15s %15s vs. %15s: %4d %4d %4d (diff %4d, games %4d) %3.2lf %3.2lf +/- %3.2lf\n", 
+  printf("%15s; %15s; %15s; %4d; %4d; %4d; (diff %4d, games %4d); %3.2lf; %3.2lf; +/- %3.2lf\n", 
     $gm, $p1, $p2, $wins{$p1}, $wins{$p2}, $ties, $diff, $games, $lperc, $rperc, $ci95perc);
 }
 
