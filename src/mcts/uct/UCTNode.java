@@ -358,20 +358,8 @@ public class UCTNode {
     public UCTNode getBestChild() {
         if (children == null)
             return null;
-
         double max = Double.NEGATIVE_INFINITY, value;
         UCTNode bestChild = null;
-        double minIm = Integer.MAX_VALUE, maxIm = Integer.MIN_VALUE;
-        if (options.imm) {
-            double val;
-            // Check the highest and lowest evaluation for normalization
-            for (UCTNode c : children) {
-                val = c.getImValue(player);
-                maxIm = Math.max(val, maxIm);
-                minIm = Math.min(val, minIm);
-            }
-        }
-
         for (UCTNode c : children) {
             // If there are children with INF value, choose one of them
             if (c.getValue(player) == Integer.MAX_VALUE)
@@ -379,13 +367,8 @@ public class UCTNode {
             else if (c.getValue(player) == Integer.MIN_VALUE)
                 value = Integer.MIN_VALUE + c.getVisits() + Options.r.nextDouble();
             else {
-                if(options.imm && maxIm != minIm) {
-                    double imVal = (c.getImValue(player) - minIm) / (maxIm - minIm);
-                    value = ((1. - options.imAlpha) * c.getValue(player)) + (options.imAlpha * imVal);
-                } else
-                    value = c.getValue(player);
+                value = c.getValue(player);
             }
-
             if (value > max) {
                 max = value;
                 bestChild = c;

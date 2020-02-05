@@ -87,7 +87,7 @@ public class GoMokuFrame extends JFrame {
                 frame.setTitle("Winner is " + board.checkWin());
             } else {
                 String player = board.getPlayerToMove() == 1 ? "bl" : "wh";
-                String eval = " e1: "+ board.evaluate(1) + " e2 " + board.evaluate(2);
+                String eval = " e1: "+ board.evaluate(1) + " e2: " + board.evaluate(2);
                 setTitle(player + eval);
             }
             aiThinking = false;

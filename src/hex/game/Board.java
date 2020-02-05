@@ -89,7 +89,8 @@ public class Board implements IBoard {
     public double evaluate(int player) {
         if(nMoves < 4)
             return 0;
-        return dpq.dijkstra(board, player) - dpq.dijkstra(board, 3 - player);
+        // lower is better..
+        return Math.tanh((dpq.dijkstra(board, 3-player) - dpq.dijkstra(board, player)) / (double)size);
     }
 
     @Override

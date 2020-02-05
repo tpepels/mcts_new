@@ -30,7 +30,7 @@ public class DPQ {
         dist[p][p] = 0;
         // Add source node to the priority queue
         pq.add(new Node(p, p, dist[p][p]));
-        int min = 0;
+        int total = 0;
         Node n;
         while (!pq.isEmpty()) {
             // remove the minimum distance node from the priority queue
@@ -38,10 +38,11 @@ public class DPQ {
             // adding the node whose distance is finalized
             seen[n.x][n.y] = seenI;
             e_Neighbours(board, n.x, n.y);
+
             if (n.x == 0 || n.y == 0 || n.x == V - 1 || n.y == V - 1)
-                min += dist[n.x][n.y];
+                total += dist[n.x][n.y];
         }
-        return min;
+        return total;
     }
 
     // Function to process all the neighbours of the passed node
@@ -74,11 +75,11 @@ public class DPQ {
 
     public static void main(String args[]) {
         int[][] board = {{0, 0, 0, 0, 0, 0},
-                {1, 0, 1, 1, 1, 0},
-                {0, 1, 2, 2, 1, 1},
-                {1, 0, 1, 1, 2, 2},
-                {0, 0, 0, 0, 2, 2},
-                {0, 0, 0, 0, 2, 1}};
+                        {0, 0, 0, 0, 0, 0},
+                        {0, 1, 2, 0, 0, 0},
+                        {0, 0, 0, 2, 1, 0},
+                        {0, 0, 0, 0, 0, 0},
+                        {0, 0, 0, 0, 0, 0}};
         DPQ dijk = new DPQ(board.length);
         System.out.println(dijk.dijkstra(board, 1));
         System.out.println(dijk.dijkstra(board, 2));
