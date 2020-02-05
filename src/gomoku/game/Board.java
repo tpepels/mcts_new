@@ -258,8 +258,8 @@ public class Board implements IBoard {
                 }
             }
         }
-        // System.out.println(player + " max " + maxMe + " " + (3 - player) + " max " + maxOpp);
-        return Math.tanh(maxMe - maxOpp);
+
+        return Math.tanh((maxMe - maxOpp) / 5.);
     }
 
     private double checkLongest(int i, int j, int pl) {

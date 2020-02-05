@@ -11,7 +11,6 @@ public class State {
     public short solvedPlayer = 0;
     public boolean visited = false;
     public SimpleRegression shortRegression = new SimpleRegression();
-    public SimpleRegression longRegression = new SimpleRegression();
     public State next = null;
     private double imValue = Integer.MIN_VALUE;
     private double sum = 0;
@@ -27,28 +26,19 @@ public class State {
                 shortRegression.clear();
                 shortRegression.addData(visits, sum / visits);
             }
-            if (longRegression.getN() + 1 % 500 == 0) { // TODO Check this number or put it in options
-                longRegression.clear();
-                longRegression.addData(visits, sum / visits);
-            }
         }
 
         visited = true;
         sum += result[0];
         visits += n;
 
-        if (regression) {
+        if (regression)
             shortRegression.addData(visits, sum / visits);
-            longRegression.addData(visits, sum / visits);
-        }
     }
 
     public double getRegressionValue(int steps, int player) {
         if (shortRegression.getN() > 1)
-            return ((player == 1) ? 1 : -1) *
-                    ((.8 * (shortRegression.predict(visits + steps)) +
-                            (.2 * longRegression.predict(visits + steps))));
-                // WARN Visits + steps is correct :)
+            return ((player == 1) ? 1 : -1) * shortRegression.predict(visits + steps); // WARN Visits + steps is correct :)
         else
             return Integer.MIN_VALUE; // Value is captured in calling method
     }

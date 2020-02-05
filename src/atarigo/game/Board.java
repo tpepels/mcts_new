@@ -263,9 +263,9 @@ public class Board implements IBoard {
         }
 
         if (player == 1) // Higher is better
-            return Math.tanh(minLiberty[0] - minLiberty[1]);
+            return Math.tanh((minLiberty[0] - minLiberty[1]) / (double)size);
         else
-            return Math.tanh(minLiberty[1] - minLiberty[0]);
+            return Math.tanh((minLiberty[1] - minLiberty[0]) / (double)size);
     }
 
     @Override
