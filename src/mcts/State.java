@@ -11,6 +11,8 @@ public class State {
     public short solvedPlayer = 0;
     public boolean visited = false;
     public SimpleRegression shortRegression = new SimpleRegression();
+    private double[][] lastResults = new double[10][2];
+    private int resultC = 0;
     public State next = null;
     private double imValue = Integer.MIN_VALUE;
     private double sum = 0;
@@ -21,10 +23,11 @@ public class State {
 
     public void updateStats(double[] result, int n, boolean regression) {
         assert !this.isSolved() : "UpdateStats called on solved position!";
+
         if (regression) {
-            if (shortRegression.getN() + 1 % 100 == 0) {// TODO Check this number or put it in options
+            if (shortRegression.getN() >= 200) {     // TODO Check this number or put it in options
                 shortRegression.clear();
-                shortRegression.addData(visits, sum / visits);
+                shortRegression.addData(lastResults);
             }
         }
 
@@ -32,13 +35,17 @@ public class State {
         sum += result[0];
         visits += n;
 
+        resultC++;
+        lastResults[resultC % lastResults.length][1] = sum / visits;
+        lastResults[resultC % lastResults.length][0] = visits;
+
         if (regression)
             shortRegression.addData(visits, sum / visits);
     }
 
     public double getRegressionValue(int steps, int player) {
         if (shortRegression.getN() > 1)
-            return ((player == 1) ? 1 : -1) * shortRegression.predict(visits + steps); // WARN Visits + steps is correct :)
+            return ((player == 1) ? 1 : -1) * shortRegression.predict(visits + steps);  // WARN Visits + steps is correct :)
         else
             return Integer.MIN_VALUE; // Value is captured in calling method
     }
@@ -79,11 +86,15 @@ public class State {
 
     public String toString() {
         if (solvedPlayer == 0) {
-            String str = "val_p1: " + df2.format(getMean(1)) + " n: " + visits;
+            String str = "val_p1: " + df2.format(getMean(1)) + "\tn: " + visits;
             if (imValue != Integer.MIN_VALUE)
                 str += "\t :: im_p1: " + df2.format(imValue);
-            if (shortRegression != null)
-                str += "\t :: reg_p1: " + df2.format(getRegressionValue(1, 1));
+            if (shortRegression != null) {
+                str += "\t :: reg1_p1: " + df2.format(getRegressionValue(1, 1));
+                str += "\t :: reg5_p1: " + df2.format(getRegressionValue(5, 1));
+                str += "\t :: reg_CI: " + df2.format(shortRegression.getSlopeConfidenceInterval());
+                str += "\t :: reg_N: " + df2.format(shortRegression.getN());
+            }
             return str;
         } else
             return "solved win P" + solvedPlayer;

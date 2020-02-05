@@ -494,8 +494,7 @@ public class UCTNode {
         else
             sb.append(" :: ").append(" no state");
         if (RAVEVisits > 0) {
-            sb.append("\t :: RAVE 1: ").append(State.df2.format(getRAVE(1))).append(" RAVE 2: ").
-                    append(State.df2.format(getRAVE(2))).append(" Rn: ").append(RAVEVisits);
+            sb.append("\t :: RV_p1: ").append(State.df2.format(getRAVE(1)));
         }
 
         return sb.toString();
