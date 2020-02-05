@@ -379,9 +379,9 @@ public class UCTNode {
             else if (c.getValue(player) == Integer.MIN_VALUE)
                 value = Integer.MIN_VALUE + c.getVisits() + Options.r.nextDouble();
             else {
-                if(options.imm) {
+                if(options.imm && maxIm != minIm) {
                     double imVal = (c.getImValue(player) - minIm) / (maxIm - minIm);
-                    value = (1. - options.imAlpha) * c.getValue(player) + (options.imAlpha * imVal);
+                    value = ((1. - options.imAlpha) * c.getValue(player)) + (options.imAlpha * imVal);
                 } else
                     value = c.getValue(player);
             }

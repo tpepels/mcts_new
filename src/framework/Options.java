@@ -103,30 +103,36 @@ public class Options {
         switch (game) {
             case "amazons": {
                 c = .4;
+                MAST = true;
+                imm = true;
+                imAlpha = 0.2;
                 break;
             }
             case "atarigo": {
-                c = .6;
+                c = .4;
                 RAVE = true;
-                k = 200;
+                k = 20;
                 break;
             }
             case "breakthrough": {
                 c = .8;
+                MAST = true;
                 RAVE = true;
-                k = 100;
+                k = 500;
+                imm = true;
+                imAlpha = 0.1;
                 break;
             }
             case "gomoku": {
                 RAVE = true;
-                k = 200;
+                k = 20;
                 c = .6;
                 break;
             }
             case "hex": {
                 RAVE = true;
-                k = 500;
-                c = .6;
+                k = 200;
+                c = .4;
                 break;
             }
             default:
