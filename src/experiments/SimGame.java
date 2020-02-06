@@ -86,6 +86,8 @@ public class SimGame {
             String tag = parts[i];
             if (tag.equals("nh")) {
                 options.heuristics = false;
+            } else if (tag.startsWith("rc")) {
+                options.maxChild = false;
             } else if (tag.startsWith("ss")) {
                 options.nSamples = Double.parseDouble(tag.substring(2));
             }else if (tag.startsWith("ns")) {

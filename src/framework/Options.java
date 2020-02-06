@@ -14,6 +14,7 @@ public class Options {
     public boolean fixedSimulations = false; // Whether to do a timed run or a run limited by a number of simulations
     public int nSimulations = 10000; // The number of UCT simulations per turn
     public boolean heuristics = true; // Whether to use improved heuristics in playouts
+    public boolean maxChild = true;
     // Parameters for resampling interesting paths
     public boolean resample = false;
     public double resampleSteps = 1.; // Increase rate for interesting moves

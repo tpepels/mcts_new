@@ -234,7 +234,7 @@ public class UCTNode {
             else {
                 // Linear regression
                 if (options.regression) {
-                   val = c.getValue(player, options.regForecastSteps); // TODO, this could also be nSamples
+                    val = c.getValue(player, options.regForecastSteps); // TODO, this could also be nSamples
                 }
 
                 // Implicit minimax
@@ -285,7 +285,7 @@ public class UCTNode {
                     mastVis = options.getMASTVisits(pl, board.getMoveId(moves.get(i)));
                     mastVal = options.getMASTValue(pl, board.getMoveId(moves.get(i)));
                     // Make sure to have visited all moves first
-                    if(mastVis < 5)
+                    if (mastVis < 5)
                         mastVal = 1. + Options.r.nextDouble();
                     // If bigger, we have a winner, if equal, flip a coin
                     if (mastVal > mastMax) {
@@ -302,7 +302,7 @@ public class UCTNode {
                     mastVal = options.getMASTValue(pl, board.getMoveId(moves.get(i))) +
                             Math.sqrt(2.0 * (Math.log(options.totalHistVis[pl - 1]) / mastVis));
                     // Make sure to have visited all moves first
-                    if(mastVis < 5)
+                    if (mastVis < 5)
                         mastVal = 1. + Options.r.nextDouble();
                     // If bigger, we have a winner, if equal, flip a coin
                     if (mastVal > mastMax) {
@@ -362,7 +362,14 @@ public class UCTNode {
             else if (c.getValue(player) == Integer.MIN_VALUE)
                 value = Integer.MIN_VALUE + c.getVisits() + Options.r.nextDouble();
             else {
-                value = c.getValue(player);
+                if (!options.maxChild)
+                    value = c.getVisits();
+                else {
+                    if (options.regression)
+                        value = c.getValue(player, options.regForecastSteps);
+                    else
+                        value = c.getValue(player);
+                }
             }
             if (value > max) {
                 max = value;

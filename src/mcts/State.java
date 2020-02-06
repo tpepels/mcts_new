@@ -67,6 +67,8 @@ public class State {
     public double getMean(int player, int regSteps) {
         visited = true;
         if (solvedPlayer == 0) { // Position is not solved, return mean
+            if(regressor == null)
+                return getMean(player);
             double regVal = regressor.predict(visits + regSteps);
             double R2 = regressor.getRSquare();
             if(!Double.isNaN(regVal) && !Double.isNaN(R2)) {
