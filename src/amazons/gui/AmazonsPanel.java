@@ -57,6 +57,14 @@ public class AmazonsPanel extends JPanel implements MouseListener, MouseMotionLi
         aiPlayer2.setMoveCallback(this);
         repaint();
         aiMove();
+        int delay = 1000; //milliseconds
+        ActionListener taskPerformer = new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                if (!aiThinking)
+                    aiMove();
+            }
+        };
+        new Timer(delay, taskPerformer).start();
     }
 
     public void paint(Graphics g) {
@@ -220,7 +228,7 @@ public class AmazonsPanel extends JPanel implements MouseListener, MouseMotionLi
         clickPos = new int[]{-1, -1, -1};
         // Run the GC in between moves, to limit the runs during search
         System.gc();
-        aiThinking =   false;
+        aiThinking = false;
     }
 
     private void aiMove() {

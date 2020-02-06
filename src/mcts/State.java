@@ -1,17 +1,20 @@
 package mcts;
 
+import framework.CUSUMChangeDetector;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 
 import java.text.DecimalFormat;
 
 public class State {
     public static final DecimalFormat df2 = new DecimalFormat("###,##0.000");
+    public static final DecimalFormat df0 = new DecimalFormat("###,##0");
     public long hash;
     public int visits = 0, lastVisit = 0;
     public short solvedPlayer = 0;
     public boolean visited = false;
-    public SimpleRegression shortRegression = new SimpleRegression();
-    private double[][] lastResults = new double[10][2];
+    public SimpleRegression regressor;
+    private CUSUMChangeDetector cSum = new CUSUMChangeDetector();
+    private double[][] MA = new double[10][2];
     private int resultC = 0;
     public State next = null;
     private double imValue = Integer.MIN_VALUE;
@@ -24,28 +27,28 @@ public class State {
     public void updateStats(double[] result, int n, boolean regression) {
         assert !this.isSolved() : "UpdateStats called on solved position!";
 
-        if (regression) {
-            if (shortRegression.getN() >= 200) {     // TODO Check this number or put it in options
-                shortRegression.clear();
-                shortRegression.addData(lastResults);
-            }
-        }
-
         visited = true;
         sum += result[0];
         visits += n;
 
         resultC++;
-        lastResults[resultC % lastResults.length][1] = sum / visits;
-        lastResults[resultC % lastResults.length][0] = visits;
+        MA[resultC % MA.length][1] = sum / visits;
+        MA[resultC % MA.length][0] = visits;
 
-        if (regression)
-            shortRegression.addData(visits, sum / visits);
+        if (regression) {
+            if(regressor == null)
+                regressor = new SimpleRegression();
+            if (cSum.update(sum / visits)) {
+                regressor.clear();
+                cSum.reset();
+            }
+            regressor.addData(visits, sum / visits);
+        }
     }
 
-    public double getRegressionValue(int steps, int player) {
-        if (shortRegression.getN() > 1)
-            return ((player == 1) ? 1 : -1) * shortRegression.predict(visits + steps);  // WARN Visits + steps is correct :)
+    public double getRegValue(int steps, int player) {
+        if (regressor.getN() > 1)
+            return ((player == 1) ? 1 : -1) * regressor.predict(visits + steps);  // WARN Visits + steps is correct :)
         else
             return Integer.MIN_VALUE; // Value is captured in calling method
     }
@@ -57,6 +60,23 @@ public class State {
                 return (((player == 1) ? 1 : -1) * sum) / visits;
             else
                 return 0;
+        } else    // Position is solved, return inf
+            return (player == solvedPlayer) ? Integer.MAX_VALUE : Integer.MIN_VALUE;
+    }
+
+    public double getMean(int player, int regSteps) {
+        visited = true;
+        if (solvedPlayer == 0) { // Position is not solved, return mean
+            double regVal = regressor.predict(visits + regSteps);
+            double R2 = regressor.getRSquare();
+            if(!Double.isNaN(regVal) && !Double.isNaN(R2)) {
+                if (visits > 0)
+                    return ((player == 1) ? 1 : -1) * ((1. - R2) * (sum / visits) + (R2 * regVal));
+                else
+                    return 0;
+            } else {
+                return getMean(player);
+            }
         } else    // Position is solved, return inf
             return (player == solvedPlayer) ? Integer.MAX_VALUE : Integer.MIN_VALUE;
     }
@@ -86,14 +106,14 @@ public class State {
 
     public String toString() {
         if (solvedPlayer == 0) {
-            String str = "val_p1: " + df2.format(getMean(1)) + "\tn: " + visits;
+            String str = "val_p1: " + df2.format(getMean(1)) + "\tn: " + df0.format(visits);
             if (imValue != Integer.MIN_VALUE)
                 str += "\t :: im_p1: " + df2.format(imValue);
-            if (shortRegression != null) {
-                str += "\t :: reg1_p1: " + df2.format(getRegressionValue(1, 1));
-                str += "\t :: reg5_p1: " + df2.format(getRegressionValue(5, 1));
-                str += "\t :: reg_CI: " + df2.format(shortRegression.getSlopeConfidenceInterval());
-                str += "\t :: reg_N: " + df2.format(shortRegression.getN());
+            if (regressor != null) {
+                str += "\t :: reg1_p1: " + df2.format(getRegValue(1, 1));
+                str += "\t :: reg5_p1: " + df2.format(getRegValue(5, 1));
+                str += "\t :: reg_R2: " + df2.format(regressor.getRSquare());
+                str += "\t :: reg_N: " + df0.format(regressor.getN());
             }
             return str;
         } else

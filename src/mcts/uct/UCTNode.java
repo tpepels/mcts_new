@@ -1,9 +1,6 @@
 package mcts.uct;
 
-import framework.FastLog;
-import framework.IBoard;
-import framework.MoveList;
-import framework.Options;
+import framework.*;
 import mcts.State;
 import mcts.TransposTable;
 
@@ -20,7 +17,7 @@ public class UCTNode {
     public List<UCTNode> children;
     // For debug only
     public String boardString;
-    public ArrayList<Double> timeSeries;
+    public Plot.Data timeSeries;
     public State state;
     private boolean expanded = false, simulated = false;
     private double[] RAVEvalue = {0, 0};
@@ -49,7 +46,7 @@ public class UCTNode {
         this.hash = hash;
         this.state = tt.getState(hash, true);
         if (Options.debug)
-            timeSeries = new ArrayList<>();
+            timeSeries = Plot.data();
     }
 
     public double[] MCTS(IBoard board, int depth) {
@@ -118,7 +115,7 @@ public class UCTNode {
             // For displaying the time-series charts
             if (Options.debug && depth == 0) {
                 for (int i = 0; i < (int) options.nSamples; i++) {
-                    child.timeSeries.add(child.getValue(player));
+                    child.timeSeries.xy(child.getVisits() - i, child.getValue(1));
                 }
             }
         }
@@ -236,10 +233,8 @@ public class UCTNode {
                 uctValue = 100. + Options.r.nextDouble();
             else {
                 // Linear regression
-                if (options.regression && c.state != null) { // TODO Put this logic in a getter
-                    double regVal = c.state.getRegressionValue(options.regForecastSteps, player);
-                    if (regVal > Integer.MIN_VALUE) // This value is returned if there weren't enough visits to predict
-                        val = (1. - options.regAlpha) * val + (options.regAlpha * regVal);
+                if (options.regression) {
+                   val = c.getValue(player, options.regForecastSteps); // TODO, this could also be nSamples
                 }
 
                 // Implicit minimax
@@ -443,6 +438,19 @@ public class UCTNode {
         return state.getMean(player);
     }
 
+    /**
+     * @return The value of this node with respect to the parent
+     */
+    public double getValue(int player, int regSteps) {
+        if (state == null)
+            state = tt.getState(hash, true);
+
+        if (state == null)
+            return 0;
+
+        return state.getMean(player, regSteps);
+    }
+
     public void updateRAVE(double[] values, int n) {
         RAVEvalue[0] += values[0];
         RAVEvalue[1] += values[1];
@@ -456,7 +464,7 @@ public class UCTNode {
             return 0;
     }
 
-    private double getVisits() {
+    public double getVisits() {
         if (state == null)
             state = tt.getState(hash, true);
 
@@ -479,8 +487,7 @@ public class UCTNode {
             sb.append(state.toString());
 
         if (RAVEVisits > 0) {
-            sb.append(" :: RAVE 1: ").append(State.df2.format(getRAVE(1))).append(" RAVE 2: ").
-                    append(State.df2.format(getRAVE(2))).append(" Rn: ").append(RAVEVisits);
+            sb.append("\t :: RV_p1: ").append(State.df2.format(getRAVE(1)));
         }
         return sb.toString();
     }

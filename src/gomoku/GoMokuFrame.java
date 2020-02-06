@@ -11,6 +11,7 @@ import java.awt.event.*;
 public class GoMokuFrame extends JFrame {
     private static final long serialVersionUID = 1L;
     public static GoMokuPanel goMokuPanel;
+    public static int size = 9;
 
     public GoMokuFrame() {
         setResizable(false);
@@ -18,8 +19,8 @@ public class GoMokuFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         goMokuPanel = new GoMokuPanel(this);
         setContentPane(goMokuPanel);
-        int size = 2 * goMokuPanel.offset + (11 * goMokuPanel.squareSize);
-        setSize(size, size + goMokuPanel.squareSize);
+        int sz = 2 * goMokuPanel.offset + (size * goMokuPanel.squareSize);
+        setSize(sz, sz);
         this.addKeyListener(goMokuPanel);
         goMokuPanel.aiMove();
     }
@@ -40,7 +41,7 @@ public class GoMokuFrame extends JFrame {
         private MoveList legalMoves;
 
         public GoMokuPanel(JFrame frame) {
-            board = new Board(9);
+            board = new Board(size);
             this.frame = frame;
             board.initialize();
             legalMoves = board.getExpandMoves();
@@ -54,6 +55,15 @@ public class GoMokuFrame extends JFrame {
 
             if (allHuman)
                 humanPlayer = 1;
+
+            int delay = 1000; //milliseconds
+            ActionListener taskPerformer = new ActionListener() {
+                public void actionPerformed(ActionEvent evt) {
+                    if (!aiThinking)
+                        aiMove();
+                }
+            };
+            new Timer(delay, taskPerformer).start();
         }
 
         private void aiMove() {

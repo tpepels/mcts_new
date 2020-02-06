@@ -133,7 +133,7 @@ public class Options {
             case "hex": {
                 RAVE = true;
                 k = 200;
-                c = .4;
+                c = .5;
                 break;
             }
             default:
