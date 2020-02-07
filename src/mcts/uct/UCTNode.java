@@ -294,23 +294,7 @@ public class UCTNode {
                     }
                 }
             }
-            if (options.UCBMast) {
-                mastMax = Double.NEGATIVE_INFINITY;
-                // Select the move with the highest MAST value
-                for (int i = 0; i < moves.size(); i++) {
-                    mastVis = options.getMASTVisits(pl, board.getMoveId(moves.get(i)));
-                    mastVal = options.getMASTValue(pl, board.getMoveId(moves.get(i))) +
-                            Math.sqrt(2.0 * (Math.log(options.totalHistVis[pl - 1]) / mastVis));
-                    // Make sure to have visited all moves first
-                    if (mastVis < 5)
-                        mastVal = 1. + Options.r.nextDouble();
-                    // If bigger, we have a winner, if equal, flip a coin
-                    if (mastVal > mastMax) {
-                        mastMax = mastVal;
-                        moveIndex = i;
-                    }
-                }
-            }
+
             move = moves.get(moveIndex);
 
             ++nMoves;
@@ -344,7 +328,7 @@ public class UCTNode {
             score[(3 - winner) - 1] = -1;
         }
 
-        if (options.MAST || options.UCBMast)
+        if (options.MAST)
             options.updateMASTMoves(score);
 
         return score;

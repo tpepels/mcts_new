@@ -123,8 +123,6 @@ public class SimGame {
                 // MAST
             } else if (tag.startsWith("M")) {
                 options.MAST = true;
-            } else if (tag.startsWith("UM")) {
-                options.UCBMast = true;
             } else if (tag.startsWith("R")) {
                 options.RAVE = true;
                 if (tag.length() > 1)

@@ -37,10 +37,10 @@ public class Options {
     public double regAlpha = 0.1;
     //
     public boolean RAVE = false;
-    public double k = 10;
+    public double k = 100;
     public int[][] RAVEMoves;
     //
-    public boolean MAST = false, UCBMast = false;
+    public boolean MAST = false;
     public double epsilon = .05;
     public long[] totalHistVis = {0, 0};
     private double[][] histVal;
