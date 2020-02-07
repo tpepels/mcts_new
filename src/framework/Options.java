@@ -14,7 +14,7 @@ public class Options {
     public boolean fixedSimulations = false; // Whether to do a timed run or a run limited by a number of simulations
     public int nSimulations = 10000; // The number of UCT simulations per turn
     public boolean heuristics = true; // Whether to use improved heuristics in playouts
-    public boolean maxChild = true;
+    public boolean maxChild = false;
     // Parameters for resampling interesting paths
     public boolean resample = false;
     public double resampleSteps = 1.; // Increase rate for interesting moves
@@ -103,6 +103,7 @@ public class Options {
     public void setGame(String game) {
         switch (game) {
             case "amazons": {
+                maxChild = false;
                 c = .4;
                 MAST = true;
                 imm = true;
@@ -110,6 +111,7 @@ public class Options {
                 break;
             }
             case "atarigo": {
+                maxChild = false;
                 c = .4;
                 RAVE = true;
                 k = 20;
@@ -117,6 +119,7 @@ public class Options {
                 break;
             }
             case "breakthrough": {
+                maxChild = true;
                 c = .8;
                 MAST = true;
                 RAVE = true;
@@ -126,12 +129,14 @@ public class Options {
                 break;
             }
             case "gomoku": {
+                maxChild = false;
                 RAVE = true;
                 k = 20;
                 c = .6;
                 break;
             }
             case "hex": {
+                maxChild = false;
                 RAVE = true;
                 k = 200;
                 c = .5;
