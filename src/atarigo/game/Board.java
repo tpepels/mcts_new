@@ -2,7 +2,6 @@ package atarigo.game;
 
 import framework.IBoard;
 import framework.MoveList;
-import framework.Options;
 
 import java.util.Random;
 
@@ -11,8 +10,6 @@ public class Board implements IBoard {
     static long blackHash, whiteHash;
     //
     public int[][] board, liberty;
-    public int[] minLiberty, maxLiberty;
-    public int[][][] emptyLiberty;
     public int nMoves = 0, cPlayer = P1, winner, size;
     private MoveList moveList;
     private long zbHash = 0;
@@ -25,26 +22,6 @@ public class Board implements IBoard {
         this.liberty = new int[size][size];
         this.moveList = new MoveList(size * size * size);
         this.seen = new long[size][size];
-        this.emptyLiberty = new int[2][size][size];
-        this.minLiberty = new int[]{2, 2};
-        this.maxLiberty = new int[]{4, 4};
-
-        for (int x = 0; x < size; x++) {
-            for (int y = 0; y < size; y++) {
-                if (x == 0 || x == (size - 1) || y == 0 || y == (size - 1)) {
-                    if (x == y || (x == (size - 1) && y == 0) || (y == (size - 1) && x == 0)) {
-                        emptyLiberty[0][y][x] = 2;
-                        emptyLiberty[1][y][x] = 2;
-                    } else {
-                        emptyLiberty[0][y][x] = 3;
-                        emptyLiberty[1][y][x] = 3;
-                    }
-                } else {
-                    emptyLiberty[0][y][x] = 4;
-                    emptyLiberty[1][y][x] = 4;
-                }
-            }
-        }
     }
 
     @Override
@@ -82,37 +59,6 @@ public class Board implements IBoard {
     @Override
     public MoveList getPlayoutMoves(boolean heuristics) {
         moveList.clear();
-
-        if (heuristics) {
-            double r = Options.r.nextDouble();
-            if (r < .9) {
-                int n;
-                for (int x = 0; x < size; x++) {
-                    for (int y = 0; y < size; y++) {
-                        if (board[y][x] != 0)
-                            continue;
-                        if (emptyLiberty[cPlayer - 1][y][x] > minLiberty[cPlayer - 1]) {
-                            n = (emptyLiberty[cPlayer - 1][y][x] - Math.max(1, minLiberty[cPlayer - 1])) / Math.max(1, minLiberty[cPlayer - 1]);
-                            // System.out.println(n);
-                            for (int i = 0; i < n; i++)
-                                moveList.add(x, y);
-                        }
-                    }
-                }
-            }
-            if (moveList.size() == 0 || r > .9) {
-                for (int y = 0; y < size; y++) {
-                    for (int x = 0; x < size; x++) {
-                        if (board[y][x] != 0)
-                            continue;
-                        if (emptyLiberty[cPlayer - 1][y][x] > minLiberty[cPlayer - 1])
-                            moveList.add(x, y);
-                    }
-                }
-            }
-            if (moveList.size() > 0)
-                return moveList;
-        }
         // No god moves can be found or we're not using heuristics
         return getExpandMoves();
     }
@@ -147,14 +93,11 @@ public class Board implements IBoard {
         newBoard.cPlayer = cPlayer;
         newBoard.winner = winner;
         newBoard.zbHash = zbHash;
-        newBoard.maxLiberty = new int[]{maxLiberty[0], maxLiberty[1]};
-        newBoard.minLiberty = new int[]{minLiberty[0], minLiberty[1]};
+
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
                 newBoard.board[j][i] = board[j][i];
                 newBoard.liberty[j][i] = liberty[j][i];
-                newBoard.emptyLiberty[0][j][i] = emptyLiberty[0][j][i];
-                newBoard.emptyLiberty[1][j][i] = emptyLiberty[1][j][i];
             }
         }
         return newBoard;
@@ -221,41 +164,6 @@ public class Board implements IBoard {
                 winner = (opp);
                 return;
             }
-        }
-
-
-        if (x + 1 < size && board[y][x + 1] == 0) {
-            emptyLiberty[opp - 1][y][x + 1]--;
-            minLiberty[opp - 1] = Math.min(emptyLiberty[opp - 1][y][x + 1], minLiberty[opp - 1]);
-        }
-        if (x - 1 >= 0 && board[y][x - 1] == 0) {
-            emptyLiberty[opp - 1][y][x - 1]--;
-            minLiberty[opp - 1] = Math.min(emptyLiberty[opp - 1][y][x - 1], minLiberty[opp - 1]);
-        }
-        if (y + 1 < size && board[y + 1][x] == 0) {
-            emptyLiberty[opp - 1][y + 1][x]--;
-            minLiberty[opp - 1] = Math.min(emptyLiberty[opp - 1][y + 1][x], minLiberty[opp - 1]);
-        }
-        if (y - 1 >= 0 && board[y - 1][x] == 0) {
-            emptyLiberty[opp - 1][y - 1][x]--;
-            minLiberty[opp - 1] = Math.min(emptyLiberty[opp - 1][y - 1][x], minLiberty[opp - 1]);
-        }
-
-        if (x + 1 < size && board[y][x + 1] == 0) {
-            emptyLiberty[cPlayer - 1][y][x + 1] += lib - 2;
-            maxLiberty[cPlayer - 1] = Math.max(emptyLiberty[cPlayer - 1][y][x + 1], maxLiberty[cPlayer - 1]);
-        }
-        if (x - 1 >= 0 && board[y][x - 1] == 0) {
-            emptyLiberty[cPlayer - 1][y][x - 1] += lib - 2;
-            maxLiberty[cPlayer - 1] = Math.max(emptyLiberty[cPlayer - 1][y][x - 1], maxLiberty[cPlayer - 1]);
-        }
-        if (y + 1 < size && board[y + 1][x] == 0) {
-            emptyLiberty[cPlayer - 1][y + 1][x] += lib - 2;
-            maxLiberty[cPlayer - 1] = Math.max(emptyLiberty[cPlayer - 1][y + 1][x], maxLiberty[cPlayer - 1]);
-        }
-        if (y - 1 >= 0 && board[y - 1][x] == 0) {
-            emptyLiberty[cPlayer - 1][y - 1][x] += lib - 2;
-            maxLiberty[cPlayer - 1] = Math.max(emptyLiberty[cPlayer - 1][y - 1][x], maxLiberty[cPlayer - 1]);
         }
         zbHash ^= zbnums[pos][cPlayer];
         cPlayer = (3 - cPlayer);
@@ -353,10 +261,10 @@ public class Board implements IBoard {
             }
         }
 
-        if (player == 1)
-            return (maxLiberty[0] + minLiberty[0]) - (maxLiberty[1] + minLiberty[1]);
+        if (player == 1) // Higher is better
+            return Math.tanh((minLiberty[0] - minLiberty[1]) / (double)size);
         else
-            return (maxLiberty[1] + minLiberty[1]) - (maxLiberty[0] + minLiberty[0]);
+            return Math.tanh((minLiberty[1] - minLiberty[0]) / (double)size);
     }
 
     @Override

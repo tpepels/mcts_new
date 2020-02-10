@@ -314,7 +314,7 @@ public class Board implements IBoard {
             eval = 10 * (nPieces2 - nPieces1);
             eval += lorentzPV2 - lorentzPV1;
         }
-        return eval;
+        return Math.tanh(eval / 100.);
     }
 
     private void recomputeProgress(int player) {

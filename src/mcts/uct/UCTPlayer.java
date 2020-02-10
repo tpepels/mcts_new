@@ -1,19 +1,12 @@
 package mcts.uct;
 
-import framework.AIPlayer;
-import framework.IBoard;
-import framework.MoveCallback;
-import framework.Options;
+import framework.*;
+import mcts.State;
 import mcts.TransposTable;
-import org.apache.commons.math3.stat.regression.SimpleRegression;
-import org.knowm.xchart.SwingWrapper;
-import org.knowm.xchart.XYChart;
-import org.knowm.xchart.XYChartBuilder;
-import org.knowm.xchart.XYSeries;
-import org.knowm.xchart.style.Styler;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
 
 public class UCTPlayer implements AIPlayer {
     public UCTNode root;
@@ -90,25 +83,77 @@ public class UCTPlayer implements AIPlayer {
             for (UCTNode uctNode : root.children) {
                 if (uctNode == bestChild)
                     System.out.print("====>> ");
-                System.out.println(uctNode);
+                System.out.println(uctNode.toString(board));
             }
             System.out.println("- player " + board.getPlayerToMove());
             System.out.println("- best child: " + bestChild.toString(board));
-            System.out.println("- # of playouts: " + simulations);
+            System.out.println("- # of playouts: " + State.df0.format(simulations));
             System.out.print("- searched for: " + ((endT - startT) / 1000.) + " sec. ");
             System.out.println((int) Math.round((1000. * simulations) / (endT - startT)) + " ppsec.");
-            System.out.println("- collisions: " + tt.collisions + ", tps: " + tt.positions);
+            System.out.println("- collisions: " + tt.collisions + ", tps: " + State.df0.format(tt.positions));
             System.out.println("-------- </uct debug > ----------");
 
-//            if (options.regression) {
-//                if (bestChild.timeSeries.size() > 1000) {
-//                    XYChart chart = getScatterPlot(bestChild.timeSeries,
-//                            bestChild.state.shortRegression, bestChild.state.longRegression,
-//                            bestChild.toString());
-//                    new SwingWrapper<>(chart).displayChart();
-//                }
-//            }
+            if(options.regression) {
+                cleanDir(new File("C:\\Users\\tpepe\\Desktop\\charts\\regressor\\"));
+                cleanDir(new File("C:\\Users\\tpepe\\Desktop\\charts\\"));
+                cleanDir(new File("C:\\Users\\tpepe\\Desktop\\charts\\cusum"));
+                for (UCTNode c : root.children) {
+                    CUSUMChangeDetector cSum = new CUSUMChangeDetector();
+                    Plot.Data changePoints = Plot.data();
+                    Plot.Data mean = Plot.data(), poscusum = Plot.data(), negcusum = Plot.data();;
+                    for (int i = 0; i < c.timeSeries.size(); i++) {
+                        double x = c.timeSeries.x(i);
+                        if (cSum.update(c.timeSeries.y(i))) {
+                            changePoints.xy(x, c.timeSeries.y(i));
+                            cSum.reset();
+                        }
+                        mean.xy(x, cSum.getMean());
+                        poscusum.xy(x, cSum.getPosCusum());
+                        negcusum.xy(x, cSum.getNegCusum());
+                    }
+                    Plot.Data regressor = Plot.data();
+                    double rs = c.getVisits() - c.state.regressor.getN(), re = c.getVisits() + 20;
+                    for (int i = (int) rs; i < re; i++) {
+                        regressor.xy(i, c.state.regressor.predict(i));
+                    }
 
+
+                    Plot plot = Plot.plot(Plot.plotOpts().title("Move plot").height(1080).width(1920)).
+                            yAxis("mean", Plot.axisOpts().range(-1, 1)).
+                            xAxis("time", Plot.axisOpts().range(rs, re).format(Plot.AxisFormat.NUMBER_INT))
+                            .series("ChangePoint", changePoints, Plot.seriesOpts().marker(Plot.Marker.CIRCLE).line(Plot.Line.NONE).color(Color.RED))
+                            .series("Mean Value", c.timeSeries, Plot.seriesOpts())
+                            .series("Regressor", regressor, Plot.seriesOpts().line(Plot.Line.SOLID).color(Color.GREEN));
+                    try {
+                        plot.save("C:\\Users\\tpepe\\Desktop\\charts\\regressor\\plot_reg" + board.getMoveString(c.move), "png");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    Plot plot3 = Plot.plot(Plot.plotOpts().title("Move plot").height(1080).width(1920)).
+                            yAxis("mean", Plot.axisOpts().range(-1, 1)).
+                            xAxis("time", Plot.axisOpts().range(0, c.getVisits()).format(Plot.AxisFormat.NUMBER_INT))
+                            .series("ChangePoint", changePoints, Plot.seriesOpts().marker(Plot.Marker.CIRCLE).line(Plot.Line.NONE).color(Color.RED))
+                            .series("Mean Value", c.timeSeries, Plot.seriesOpts());
+                    try {
+                        plot3.save("C:\\Users\\tpepe\\Desktop\\charts\\plot_values" + board.getMoveString(c.move), "png");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    Plot plot2 = Plot.plot(Plot.plotOpts().title("Move plot").height(1080).width(1920).legend(Plot.LegendFormat.TOP)).
+                            yAxis("y", Plot.axisOpts().range(-1, 1)).
+                            xAxis("x", Plot.axisOpts().range(0, c.getVisits()).format(Plot.AxisFormat.NUMBER_INT))
+                            .series("mean", mean, Plot.seriesOpts().line(Plot.Line.DASHED).color(Color.RED))
+                            .series("S+", poscusum, Plot.seriesOpts().line(Plot.Line.SOLID).color(Color.BLACK))
+                            .series("S-", negcusum, Plot.seriesOpts().line(Plot.Line.SOLID).color(Color.GREEN));
+                    try {
+                        plot2.save("C:\\Users\\tpepe\\Desktop\\charts\\cusum\\plot_cusum" + board.getMoveString(c.move), "png");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
         }
         // Pack the transpositions
         tt.pack(options.trans_offset);
@@ -117,37 +162,6 @@ public class UCTPlayer implements AIPlayer {
         System.gc();
         if (moveCallback != null)
             moveCallback.makeMove(bestMove);
-    }
-
-    private XYChart getScatterPlot(List<Double> yData, SimpleRegression shortRegression, SimpleRegression longRegression, String name) {
-        XYChart chart = new XYChartBuilder().width(800).height(600).build();
-        // Customize Chart
-        chart.getStyler().setChartTitleVisible(true);
-        chart.getStyler().setLegendPosition(Styler.LegendPosition.InsideNE);
-        chart.getStyler().setMarkerSize(2);
-
-        int n = yData.size();
-        // Series
-        List<Integer> xData = new ArrayList<>();
-        List<Double> rData = new ArrayList<>(), lData = new ArrayList<>();
-        for (int i = 0; i < 1000; i++) {
-            xData.add(i);
-            lData.add(0, longRegression.predict(n - i));
-        }
-        for (int i = 0; i < 100; i++) {
-            rData.add(0, shortRegression.predict(n - i));
-        }
-        for (int i = 0; i < 25; i++) {
-            xData.add(1000 + i);
-            rData.add(shortRegression.predict(n + i));
-            lData.add(longRegression.predict(n + i));
-        }
-
-        chart.addSeries(name, xData.subList(0, 1000), yData.subList(n - 1000, n)).
-                setXYSeriesRenderStyle(XYSeries.XYSeriesRenderStyle.Scatter);
-        chart.addSeries("Short regression", xData.subList(xData.size() - 125, xData.size()), rData);
-        chart.addSeries("Long regression", xData, lData);
-        return chart;
     }
 
     public void setOptions(Options options) {
@@ -171,6 +185,16 @@ public class UCTPlayer implements AIPlayer {
     public void run() {
         assert board != null : "Set the board first!";
         getMove(this.board);
+    }
+
+    private void cleanDir(File directory) {
+        File[] files = directory.listFiles();
+        for(File f : files) {
+            if(f.isDirectory())
+                cleanDir(f);
+            else
+                f.delete();
+        }
     }
 }
 

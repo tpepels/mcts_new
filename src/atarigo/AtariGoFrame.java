@@ -11,6 +11,7 @@ import java.awt.event.*;
 public class AtariGoFrame extends JFrame {
     private static final long serialVersionUID = 1L;
     public static AtariGoPanel nogoPanel;
+    public static int size = 9;
 
     public AtariGoFrame() {
         setResizable(false);
@@ -18,8 +19,8 @@ public class AtariGoFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         nogoPanel = new AtariGoPanel(this);
         setContentPane(nogoPanel);
-        int size = 2 * nogoPanel.offset + (11 * nogoPanel.squareSize);
-        setSize(size, size + nogoPanel.squareSize);
+        int sz = 2 * nogoPanel.offset + (size * nogoPanel.squareSize);
+        setSize(sz, sz);
         this.addKeyListener(nogoPanel);
         nogoPanel.aiMove();
     }
@@ -40,7 +41,7 @@ public class AtariGoFrame extends JFrame {
         private MoveList legalMoves;
 
         public AtariGoPanel(JFrame frame) {
-            board = new Board(9);
+            board = new Board(size);
             this.frame = frame;
             board.initialize();
             legalMoves = board.getExpandMoves();
@@ -56,6 +57,15 @@ public class AtariGoFrame extends JFrame {
 
             if (allHuman)
                 humanPlayer = 1;
+
+            int delay = 1000; //milliseconds
+            ActionListener taskPerformer = new ActionListener() {
+                public void actionPerformed(ActionEvent evt) {
+                    if (!aiThinking)
+                        aiMove();
+                }
+            };
+            new Timer(delay, taskPerformer).start();
         }
 
         private void aiMove() {
@@ -90,9 +100,7 @@ public class AtariGoFrame extends JFrame {
             } else {
                 String player = board.getPlayerToMove() == 1 ? "bl" : "wh";
                 String eval = " e1: " + board.evaluate(1) + " e2 " + board.evaluate(2);
-                String maxLib = " mx1: " + board.maxLiberty[0] + " mx2: " + board.maxLiberty[1];
-                String minLib = " mn1: " + board.minLiberty[0] + " mn2: " + board.minLiberty[1];
-                setTitle(player + eval + maxLib + minLib);
+                setTitle(player + eval);
             }
             aiThinking = false;
         }
@@ -133,9 +141,6 @@ public class AtariGoFrame extends JFrame {
                         else g.setColor(Color.BLACK);
 
                         g.drawString(Integer.toString(board.liberty[j][i]), x, y);
-                    } else {
-                        g.setColor(Color.BLACK);
-                        g.drawString(board.emptyLiberty[0][j][i] + "/" + board.emptyLiberty[1][j][i], x, y - 10);
                     }
                 }
             }

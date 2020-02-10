@@ -86,9 +86,13 @@ public class SimGame {
             String tag = parts[i];
             if (tag.equals("nh")) {
                 options.heuristics = false;
-            } else if (tag.startsWith("s")) {
+            } else if (tag.startsWith("rc")) {
+                options.maxChild = false;
+            } else if (tag.startsWith("ss")) {
+                options.nSamples = Double.parseDouble(tag.substring(2));
+            }else if (tag.startsWith("ns")) {
                 options.nSimulations = Integer.parseInt(tag.substring(1));
-            } else if (tag.equals("f")) {
+            } else if (tag.equals("fx")) {
                 options.fixedSimulations = true;
             } else if (tag.startsWith("c")) {
                 options.c = Double.parseDouble(tag.substring(1));
@@ -119,8 +123,6 @@ public class SimGame {
                 // MAST
             } else if (tag.startsWith("M")) {
                 options.MAST = true;
-            } else if (tag.startsWith("UM")) {
-                options.UCBMast = true;
             } else if (tag.startsWith("R")) {
                 options.RAVE = true;
                 if (tag.length() > 1)

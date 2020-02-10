@@ -14,6 +14,7 @@ public class Options {
     public boolean fixedSimulations = false; // Whether to do a timed run or a run limited by a number of simulations
     public int nSimulations = 10000; // The number of UCT simulations per turn
     public boolean heuristics = true; // Whether to use improved heuristics in playouts
+    public boolean maxChild = false;
     // Parameters for resampling interesting paths
     public boolean resample = false;
     public double resampleSteps = 1.; // Increase rate for interesting moves
@@ -36,10 +37,10 @@ public class Options {
     public double regAlpha = 0.1;
     //
     public boolean RAVE = false;
-    public double k = 10;
+    public double k = 100;
     public int[][] RAVEMoves;
     //
-    public boolean MAST = false, UCBMast = false;
+    public boolean MAST = false;
     public double epsilon = .05;
     public long[] totalHistVis = {0, 0};
     private double[][] histVal;
@@ -102,31 +103,43 @@ public class Options {
     public void setGame(String game) {
         switch (game) {
             case "amazons": {
+                maxChild = false;
                 c = .4;
+                MAST = true;
+                imm = true;
+                imAlpha = 0.2;
                 break;
             }
             case "atarigo": {
-                c = .6;
+                maxChild = false;
+                c = .4;
                 RAVE = true;
-                k = 200;
+                k = 20;
+                MAST = true;
                 break;
             }
             case "breakthrough": {
+                maxChild = true;
                 c = .8;
+                MAST = true;
                 RAVE = true;
-                k = 100;
+                k = 500;
+                imm = true;
+                imAlpha = 0.1;
                 break;
             }
             case "gomoku": {
+                maxChild = false;
                 RAVE = true;
-                k = 200;
+                k = 20;
                 c = .6;
                 break;
             }
             case "hex": {
+                maxChild = false;
                 RAVE = true;
-                k = 500;
-                c = .6;
+                k = 200;
+                c = .5;
                 break;
             }
             default:

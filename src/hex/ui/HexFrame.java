@@ -1,15 +1,17 @@
 package hex.ui;
 
-import framework.AIPlayer;
-import framework.MoveCallback;
-import framework.Options;
-import framework.PlayerFactory;
-import hex.game.Board;
-import mcts.uct.UCTPlayer;
-
-import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+
+import javax.swing.JFrame;
+import javax.swing.Timer;
+
+import framework.AIPlayer;
+import framework.MoveCallback;
+import framework.PlayerFactory;
+import hex.game.Board;
 
 public class HexFrame extends JFrame implements UserInputListener, MoveCallback, KeyListener {
     private static final long serialVersionUID = 1L;
@@ -39,6 +41,15 @@ public class HexFrame extends JFrame implements UserInputListener, MoveCallback,
         aiPlayer2.setMoveCallback(this);
 
         aiMove();
+
+        int delay = 1000; //milliseconds
+        ActionListener taskPerformer = new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                if (!aiThinking)
+                    aiMove();
+            }
+        };
+        new Timer(delay, taskPerformer).start();
     }
 
     public static void main(String[] args) {

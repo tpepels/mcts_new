@@ -303,7 +303,7 @@ public class Board implements IBoard {
     public double evaluate(int player) {
         double count = getFreedom(player) - getFreedom(3 - player);
         // The more available moves the player has, the better
-        return count / (16. * (nMoves / 4.0));  // 16. assumes endgame
+        return Math.tanh(count / (16. * (nMoves / 4.0)));  // 16. assumes endgame
     }
 
     private int getFreedom(int player) {
