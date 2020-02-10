@@ -258,7 +258,7 @@ public class Board implements IBoard {
             }
         }
         Options.maxEval = Math.max(Math.abs(maxMe - maxOpp), Options.maxEval);
-        return Math.tanh((maxMe - maxOpp) / Options.maxEval);
+        return Math.tanh((maxMe - maxOpp) / (0.5 * Options.maxEval));
     }
 
     private double checkLongest(int i, int j, int pl) {

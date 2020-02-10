@@ -70,17 +70,9 @@ public class UCTNode {
             if (!isTerminal()) {
                 if (options.RAVE)
                     options.addRAVEMove(player, board.getMoveId(child.move), depth);
-
                 if (options.MAST)
                     options.addMASTMove(player, board.getMoveId(child.move));
-
                 board.doMove(child.move);
-
-                if (options.imm && !child.simulated) {
-                    if (child.getImValue(player) == Integer.MIN_VALUE)
-                        child.setImValue(board.evaluate(player), player);
-                }
-
                 assert board.hash() == child.hash : "Board hash is incorrect";
             }
             // When a leaf is reached return the result of the playout
@@ -113,10 +105,8 @@ public class UCTNode {
                     }
                 }
             }
-
             if (!child.isSolved())
                 updateStats(result, (int) options.nSamples);
-
             // For displaying the time-series charts
             if (Options.debug && depth == 0) {
                 for (int i = 0; i < (int) options.nSamples; i++) {
@@ -124,7 +114,7 @@ public class UCTNode {
                 }
             }
         }
-
+        //
         if (child.getValue(player) == Integer.MAX_VALUE) {
             // One of my children is a proven win
             setSolved(player);
@@ -166,7 +156,7 @@ public class UCTNode {
             return null;
 
         int[] move;
-        // double best_imVal = Integer.MIN_VALUE;
+        double best_imVal = Integer.MIN_VALUE;
         // Add all moves as children to the current node
         for (int i = 0; i < moves.size(); i++) {
             move = moves.get(i);
@@ -187,23 +177,22 @@ public class UCTNode {
                     child.setSolved(winner);
                 }
             }
-            // TEST -- Don't evaluate nodes when expanding, this takes too much time
-            // if (options.imm) {
-            //     double imVal = 0;
-            //     if (child.getImValue(player) == Integer.MIN_VALUE) {
-            //         imVal = tempBoard.evaluate(player);
-            //         child.setImValue(imVal, player);
-            //     } else // IM Value was already determined elsewhere in the tree
-            //         imVal = child.getImValue(player);
 
-            //     best_imVal = Math.max(best_imVal, imVal);
-            // }
+            if (options.imm) {
+                double imVal = 0;
+                if (child.getImValue(player) == Integer.MIN_VALUE) {
+                    imVal = tempBoard.evaluate(player);
+                    child.setImValue(imVal, player);
+                } else // IM Value was already determined elsewhere in the tree
+                    imVal = child.getImValue(player);
+                best_imVal = Math.max(best_imVal, imVal);
+            }
             children.add(child);
         }
         expanded = true;
         // Back-propagate the best IM value
-        // if (options.imm)
-        //     setImValue(best_imVal, player);
+        if (options.imm)
+            setImValue(best_imVal, player);
         // If one of the nodes is a win, return it.
         return winNode;
     }

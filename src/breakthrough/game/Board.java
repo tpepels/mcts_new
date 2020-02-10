@@ -315,7 +315,7 @@ public class Board implements IBoard {
             eval += lorentzPV2 - lorentzPV1;
         }
         Options.maxEval = Math.max(Math.abs(eval), Options.maxEval);
-        return Math.tanh(eval / Options.maxEval);
+        return Math.tanh(eval / (0.5 * Options.maxEval));
     }
 
     private void recomputeProgress(int player) {

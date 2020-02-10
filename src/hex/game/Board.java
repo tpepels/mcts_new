@@ -92,7 +92,7 @@ public class Board implements IBoard {
             return 0;
         Options.maxEval = Math.max(size - dpq.dijkstra(board, player), Options.maxEval);
         // lower is better..
-        return Math.tanh((size - dpq.dijkstra(board, player)) / Options.maxEval);
+        return Math.tanh((size - dpq.dijkstra(board, player)) / (0.5 * Options.maxEval));
     }
 
     @Override

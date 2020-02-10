@@ -265,9 +265,9 @@ public class Board implements IBoard {
         Options.maxEval = Math.max(Math.abs(minLiberty[0] - minLiberty[1]), Options.maxEval);
 
         if (player == 1) // Higher is better
-            return Math.tanh((minLiberty[0] - minLiberty[1]) / Options.maxEval);
+            return Math.tanh((minLiberty[0] - minLiberty[1]) / (0.5 * Options.maxEval));
         else
-            return Math.tanh((minLiberty[1] - minLiberty[0]) / Options.maxEval);
+            return Math.tanh((minLiberty[1] - minLiberty[0]) / (0.5 * Options.maxEval));
     }
 
     @Override

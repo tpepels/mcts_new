@@ -304,7 +304,7 @@ public class Board implements IBoard {
         double count = getFreedom(player) - getFreedom(3 - player);
         Options.maxEval = Math.max(Math.abs(count), Options.maxEval);
         // The more available moves the player has, the better
-        return Math.tanh(count / Options.maxEval);
+        return Math.tanh(count / (0.5 * Options.maxEval));
     }
 
     private int getFreedom(int player) {
