@@ -239,6 +239,7 @@ public class AmazonsPanel extends JPanel implements MouseListener, MouseMotionLi
         // Run the GC in between moves, to limit the runs during search
         System.gc();
         aiThinking = false;
+        System.out.println(" e1: " + board.evaluate(1) + " e2: " + board.evaluate(2));
     }
 
     private void aiMove() {

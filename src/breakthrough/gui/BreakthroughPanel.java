@@ -238,6 +238,7 @@ public class BreakthroughPanel extends JPanel implements MouseListener, MouseMot
         // Run the GC in between moves, to limit the runs during search
         System.gc();
         aiThinking = false;
+        System.out.println(" e1: " + board.evaluate(1) + " e2: " + board.evaluate(2));
     }
 
     @Override

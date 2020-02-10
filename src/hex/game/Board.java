@@ -2,6 +2,7 @@ package hex.game;
 
 import framework.IBoard;
 import framework.MoveList;
+import framework.Options;
 
 import java.util.Random;
 
@@ -89,8 +90,9 @@ public class Board implements IBoard {
     public double evaluate(int player) {
         if(nMoves < 4)
             return 0;
+        Options.maxEval = Math.max(size - dpq.dijkstra(board, player), Options.maxEval);
         // lower is better..
-        return Math.tanh((dpq.dijkstra(board, 3-player) - dpq.dijkstra(board, player)) / (double)size);
+        return Math.tanh((size - dpq.dijkstra(board, player)) / Options.maxEval);
     }
 
     @Override

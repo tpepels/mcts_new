@@ -2,6 +2,7 @@ package atarigo.game;
 
 import framework.IBoard;
 import framework.MoveList;
+import framework.Options;
 
 import java.util.Random;
 
@@ -261,10 +262,12 @@ public class Board implements IBoard {
             }
         }
 
+        Options.maxEval = Math.max(Math.abs(minLiberty[0] - minLiberty[1]), Options.maxEval);
+
         if (player == 1) // Higher is better
-            return Math.tanh((minLiberty[0] - minLiberty[1]) / (double)size);
+            return Math.tanh((minLiberty[0] - minLiberty[1]) / Options.maxEval);
         else
-            return Math.tanh((minLiberty[1] - minLiberty[0]) / (double)size);
+            return Math.tanh((minLiberty[1] - minLiberty[0]) / Options.maxEval);
     }
 
     @Override

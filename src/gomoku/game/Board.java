@@ -2,6 +2,7 @@ package gomoku.game;
 
 import framework.IBoard;
 import framework.MoveList;
+import framework.Options;
 
 import java.util.Random;
 
@@ -256,8 +257,8 @@ public class Board implements IBoard {
                 }
             }
         }
-
-        return Math.tanh((maxMe - maxOpp) / 5.);
+        Options.maxEval = Math.max(Math.abs(maxMe - maxOpp), Options.maxEval);
+        return Math.tanh((maxMe - maxOpp) / Options.maxEval);
     }
 
     private double checkLongest(int i, int j, int pl) {

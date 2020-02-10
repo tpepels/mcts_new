@@ -7,6 +7,8 @@ import java.util.Random;
 public class Options {
     public static final Random r = new Random();
     public static boolean debug = false;
+    //
+    public static double maxEval, minEval;
 
     // Various experimental variables
     public double nSamples = 1; // The number of samples per UCT simulation. It's a double because of the resample steps

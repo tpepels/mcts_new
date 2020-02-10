@@ -13,11 +13,11 @@ public class PlayerFactory {
         //
         if(p == 1) {
             options.fixedSimulations = false;
-            options.nSimulations = 10000;
-            options.regression = true;
+            options.nSimulations = 5000;
+            options.imm = true;
         } else if (p == 2) {
             options.fixedSimulations = false;
-            options.nSimulations = 10000;
+            options.nSimulations = 5000;
         }
         //
         return aiPlayer;

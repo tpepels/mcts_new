@@ -1,15 +1,11 @@
 package mcts.uct;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import framework.FastLog;
-import framework.IBoard;
-import framework.MoveList;
-import framework.Options;
-import framework.Plot;
+import framework.*;
 import mcts.State;
 import mcts.TransposTable;
+
+import java.util.LinkedList;
+import java.util.List;
 
 public class UCTNode {
     public final int player;
@@ -79,6 +75,12 @@ public class UCTNode {
                     options.addMASTMove(player, board.getMoveId(child.move));
 
                 board.doMove(child.move);
+
+                if (options.imm && !child.simulated) {
+                    if (child.getImValue(player) == Integer.MIN_VALUE)
+                        child.setImValue(board.evaluate(player), player);
+                }
+
                 assert board.hash() == child.hash : "Board hash is incorrect";
             }
             // When a leaf is reached return the result of the playout
@@ -231,13 +233,13 @@ public class UCTNode {
                 uctValue = Integer.MAX_VALUE - Options.r.nextDouble();
             else if (val == Integer.MIN_VALUE)
                 uctValue = Integer.MIN_VALUE + Options.r.nextDouble();
-            else if (nc == 0)
+            else if (nc == 0) {
                 // First, visit all children at least once
                 uctValue = 100. + Options.r.nextDouble();
-            else {
+            } else {
                 // Linear regression
                 if (options.regression) {
-                    val = c.getValue(player, options.regForecastSteps); // TODO, this could also be nSamples
+                    val = c.getValue(player, options.regForecastSteps, options.regAlpha); // TODO, this could also be nSamples
                 }
                 // Implicit minimax
                 if (options.imm && minIm != maxIm) {
@@ -252,7 +254,6 @@ public class UCTNode {
                 // Compute the uct value with the (new) average value
                 uctValue = val + options.c * Math.sqrt(FastLog.log(np) / nc) + (Options.r.nextDouble() * 0.00001);
             }
-
             // Remember the highest UCT value
             if (uctValue > max) {
                 selected = c;
@@ -350,10 +351,7 @@ public class UCTNode {
                 if (!options.maxChild)
                     value = c.getVisits();
                 else {
-                    if (options.regression)
-                        value = c.getValue(player, options.regForecastSteps);
-                    else
-                        value = c.getValue(player);
+                    value = c.getValue(player);
                 }
             }
             if (value > max) {
@@ -433,14 +431,14 @@ public class UCTNode {
     /**
      * @return The value of this node with respect to the parent
      */
-    public double getValue(int player, int regSteps) {
+    public double getValue(int player, int regSteps, double regAlpha) {
         if (state == null)
             state = tt.getState(hash, true);
 
         if (state == null)
             return 0;
 
-        return state.getMean(player, regSteps);
+        return state.getMean(player, regSteps, regAlpha);
     }
 
     public void updateRAVE(double[] values, int n) {

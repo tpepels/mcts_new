@@ -10,12 +10,12 @@ public class Board implements IBoard {
     public static final int P1 = 1, CAPTURED = -1, PIECES = 16;
     private static final String rowLabels = "87654321", colLabels = "abcdefgh";
     private static final int[] lorentzValues =
-            {5, 15, 15, 5, 5, 15, 15, 5,
-                    2, 3, 3, 3, 3, 3, 3, 2,
+                    {5, 15, 15, 5, 5, 15, 15, 5,
+                    2, 3, 5, 5, 5, 5, 3, 2,
                     4, 6, 6, 6, 6, 6, 6, 4,
                     7, 10, 10, 10, 10, 10, 10, 7,
-                    11, 15, 15, 15, 15, 15, 15, 11,
-                    16, 21, 21, 21, 21, 21, 21, 16,
+                    11, 13, 13, 13, 13, 13, 13, 11,
+                    15, 18, 18, 18, 18, 18, 18, 15,
                     20, 28, 28, 28, 28, 28, 28, 20,
                     36, 36, 36, 36, 36, 36, 36, 36};
     private static final int[] rowOffset = {-1, -1, +1, +1}, colOffset = {-1, +1, -1, +1};
@@ -306,15 +306,16 @@ public class Board implements IBoard {
 
     @Override
     public double evaluate(int player) { // TODO Evaluation very negative for P1
-        int eval = 0;
+        int eval;
         if(player == 1) {
-            eval = 10 * (nPieces1 - nPieces2);
+            eval = 50 * (nPieces1 - nPieces2);
             eval += lorentzPV1 - lorentzPV2;
         } else {
-            eval = 10 * (nPieces2 - nPieces1);
+            eval = 50 * (nPieces2 - nPieces1);
             eval += lorentzPV2 - lorentzPV1;
         }
-        return Math.tanh(eval / 100.);
+        Options.maxEval = Math.max(Math.abs(eval), Options.maxEval);
+        return Math.tanh(eval / Options.maxEval);
     }
 
     private void recomputeProgress(int player) {

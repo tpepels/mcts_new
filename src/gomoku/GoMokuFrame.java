@@ -99,7 +99,9 @@ public class GoMokuFrame extends JFrame {
                 String eval = " e1: "+ board.evaluate(1) + " e2: " + board.evaluate(2);
                 setTitle(player + eval);
             }
+            System.gc();
             aiThinking = false;
+            System.out.println(" e1: " + board.evaluate(1) + " e2: " + board.evaluate(2));
         }
 
         public void paint(Graphics g) {

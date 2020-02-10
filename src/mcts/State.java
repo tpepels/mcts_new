@@ -64,10 +64,10 @@ public class State {
             return (player == solvedPlayer) ? Integer.MAX_VALUE : Integer.MIN_VALUE;
     }
 
-    public double getMean(int player, int regSteps) {
+    public double getMean(int player, int regSteps, double regAlpha) {
         visited = true;
         if (solvedPlayer == 0) { // Position is not solved, return mean
-            if(regressor == null || regressor.getN() < 50)
+            if(regressor == null || regressor.getN() < 50 || regressor.getRSquare() < .7)
                 return getMean(player);
             double regVal = regressor.predict(visits + regSteps);
             double R2 = regressor.getRSquare();

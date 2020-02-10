@@ -104,7 +104,9 @@ public class HexFrame extends JFrame implements UserInputListener, MoveCallback,
             System.out.println((System.currentTimeMillis() - startT) / 1000 + "ms.");
             setTitle(player + " to move " + eval);
         }
+        System.gc();
         aiThinking = false;
+        System.out.println(" e1: " + board.evaluate(1) + " e2: " + board.evaluate(2));
     }
 
     @Override
