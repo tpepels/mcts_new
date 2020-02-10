@@ -2,7 +2,6 @@ package atarigo.game;
 
 import framework.IBoard;
 import framework.MoveList;
-import framework.Options;
 
 import java.util.Random;
 

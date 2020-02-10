@@ -1,12 +1,15 @@
 package mcts.uct;
 
-import framework.*;
-import mcts.State;
-import mcts.TransposTable;
-
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+
+import framework.FastLog;
+import framework.IBoard;
+import framework.MoveList;
+import framework.Options;
+import framework.Plot;
+import mcts.State;
+import mcts.TransposTable;
 
 public class UCTNode {
     public final int player;
@@ -161,7 +164,7 @@ public class UCTNode {
             return null;
 
         int[] move;
-        double best_imVal = Integer.MIN_VALUE;
+        // double best_imVal = Integer.MIN_VALUE;
         // Add all moves as children to the current node
         for (int i = 0; i < moves.size(); i++) {
             move = moves.get(i);
@@ -182,23 +185,23 @@ public class UCTNode {
                     child.setSolved(winner);
                 }
             }
-            // implicit minimax
-            if (options.imm) {
-                double imVal = 0;
-                if (child.getImValue(player) == Integer.MIN_VALUE) {
-                    imVal = tempBoard.evaluate(player);
-                    child.setImValue(imVal, player);
-                } else // IM Value was already determined elsewhere in the tree
-                    imVal = child.getImValue(player);
+            // TEST -- Don't evaluate nodes when expanding, this takes too much time
+            // if (options.imm) {
+            //     double imVal = 0;
+            //     if (child.getImValue(player) == Integer.MIN_VALUE) {
+            //         imVal = tempBoard.evaluate(player);
+            //         child.setImValue(imVal, player);
+            //     } else // IM Value was already determined elsewhere in the tree
+            //         imVal = child.getImValue(player);
 
-                best_imVal = Math.max(best_imVal, imVal);
-            }
+            //     best_imVal = Math.max(best_imVal, imVal);
+            // }
             children.add(child);
         }
         expanded = true;
         // Back-propagate the best IM value
-        if (options.imm)
-            setImValue(best_imVal, player);
+        // if (options.imm)
+        //     setImValue(best_imVal, player);
         // If one of the nodes is a win, return it.
         return winNode;
     }
@@ -236,7 +239,6 @@ public class UCTNode {
                 if (options.regression) {
                     val = c.getValue(player, options.regForecastSteps); // TODO, this could also be nSamples
                 }
-
                 // Implicit minimax
                 if (options.imm && minIm != maxIm) {
                     double imVal = (c.getImValue(player) - minIm) / (maxIm - minIm);
@@ -247,9 +249,8 @@ public class UCTNode {
                     double beta = Math.sqrt(options.k / ((3 * getVisits()) + options.k));
                     val = (beta * c.getRAVE(player)) + ((1 - beta) * val);
                 }
-
                 // Compute the uct value with the (new) average value
-                uctValue = val + options.c * Math.sqrt(FastLog.log(np) / nc) + (Options.r.nextDouble() * 0.001);
+                uctValue = val + options.c * Math.sqrt(FastLog.log(np) / nc) + (Options.r.nextDouble() * 0.00001);
             }
 
             // Remember the highest UCT value

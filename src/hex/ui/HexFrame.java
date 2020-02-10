@@ -1,17 +1,17 @@
 package hex.ui;
 
-import framework.AIPlayer;
-import framework.MoveCallback;
-import framework.Options;
-import framework.PlayerFactory;
-import hex.game.Board;
-import mcts.uct.UCTPlayer;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+
+import javax.swing.JFrame;
+import javax.swing.Timer;
+
+import framework.AIPlayer;
+import framework.MoveCallback;
+import framework.PlayerFactory;
+import hex.game.Board;
 
 public class HexFrame extends JFrame implements UserInputListener, MoveCallback, KeyListener {
     private static final long serialVersionUID = 1L;

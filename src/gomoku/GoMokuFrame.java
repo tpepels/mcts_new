@@ -2,7 +2,6 @@ package gomoku;
 
 import framework.*;
 import gomoku.game.Board;
-import mcts.uct.UCTPlayer;
 
 import javax.swing.*;
 import java.awt.*;

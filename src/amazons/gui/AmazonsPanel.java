@@ -1,20 +1,30 @@
 package amazons.gui;
 
 
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.Timer;
+
 import amazons.game.Board;
 import framework.AIPlayer;
 import framework.MoveCallback;
-import framework.Options;
 import framework.PlayerFactory;
 import framework.gui.GuiOptions;
-import mcts.uct.UCTPlayer;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.File;
-import java.io.IOException;
 
 public class AmazonsPanel extends JPanel implements MouseListener, MouseMotionListener, MoveCallback, KeyListener {
     private static final long serialVersionUID = 1L;

@@ -1,0 +1,6 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "c:\\Users\\tpepe\\IdeaProjects\\mcts_new\\lib\\commons-math3-3.6.1.jar"
+    ]
+}
