@@ -90,9 +90,10 @@ public class Board implements IBoard {
     public double evaluate(int player) {
         if(nMoves < 4)
             return 0;
-        Options.maxEval = Math.max(size - dpq.dijkstra(board, player), Options.maxEval);
         // lower is better..
-        return Math.tanh((size - dpq.dijkstra(board, player)) / (0.5 * Options.maxEval));
+        double eval = dpq.dijkstra(board, (3-player)) - dpq.dijkstra(board, player);
+        Options.maxEval = Math.max(Math.abs(eval), Options.maxEval);
+        return Math.tanh(eval / (0.5 * Options.maxEval));
     }
 
     @Override

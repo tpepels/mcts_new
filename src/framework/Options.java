@@ -118,6 +118,8 @@ public class Options {
                 RAVE = true;
                 k = 20;
                 MAST = true;
+                imm = true;
+                imAlpha = 0.3;
                 break;
             }
             case "breakthrough": {
@@ -127,7 +129,7 @@ public class Options {
                 RAVE = true;
                 k = 500;
                 imm = true;
-                imAlpha = 0.1;
+                imAlpha = 0.2;
                 break;
             }
             case "gomoku": {

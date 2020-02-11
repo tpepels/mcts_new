@@ -31,19 +31,23 @@ public class DPQ {
 
         if (player == 2) {
             for (int i = 0; i < V; i++) {
+                if(board[i][0] == 3 - player)
+                    continue;
                 dist[i][0] = (board[i][0] == player) ? 0 : 1;
                 // Add source node to the priority queue
                 pq.add(new Node(i, 0, dist[i][0]));
             }
         } else {
             for (int i = 0; i < V; i++) {
+                if(board[0][i] == 3 - player)
+                    continue;
                 dist[0][i] = (board[0][i] == player) ? 0 : 1;
                 // Add source node to the priority queue
                 pq.add(new Node(0, i, dist[0][i]));
             }
         }
 
-        int min = INF, x, y;
+        int min = INF;
         Node n;
         while (!pq.isEmpty()) {
             // remove the minimum distance node from the priority queue
@@ -73,7 +77,7 @@ public class DPQ {
             if (!inBounds(x, y) || seen[x][y] == seenI)
                 continue;
 
-            if (board[x][y] != player && board[x][y] != 0)
+            if (board[x][y] == (3 - player))
                 continue;
 
             newDistance = dist[xs][ys] + ((board[x][y] == player) ? 0 : 1);
@@ -93,12 +97,12 @@ public class DPQ {
 
     public static void main(String args[]) {
         int[][] board = {{0, 0, 0, 0, 0},
-                {1, 0, 1, 1, 1},
-                {1, 1, 0, 0, 1},
-                {1, 0, 1, 1, 0},
+                {0, 0, 0, 1, 1},
+                {0, 1, 2, 0, 1},
+                {0, 2, 1, 1, 0},
                 {0, 0, 0, 0, 0}};
         DPQ dijk = new DPQ(board.length);
-        dijk.dijkstra(board, 1);
+        System.out.println(dijk.dijkstra(board, 1));
 
         for (int i = 0; i < dijk.dist.length; i++) {
             for (int j = 0; j < dijk.dist[i].length; j++) {
