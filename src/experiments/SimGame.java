@@ -88,6 +88,13 @@ public class SimGame {
                 options.heuristics = false;
             } else if (tag.startsWith("rc")) {
                 options.maxChild = false;
+            } else if (tag.startsWith("vanilla")) {
+                options.MAST = false;
+                options.RAVE = false;
+                options.imm = false;
+                options.regression = false;
+                options.resample = false;
+                options.earlyTerm = false;
             } else if (tag.startsWith("ss")) {
                 options.nSamples = Double.parseDouble(tag.substring(2));
             }else if (tag.startsWith("ns")) {

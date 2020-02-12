@@ -25,8 +25,8 @@ public class Options {
 
     // Parameters for early playout termination
     public boolean earlyTerm = false; // Whether to terminate playouts before the end of the game and return a value
-    public int termDepth = 4; // Terminate playout after termDepth steps
-    public int etT = 20; // The threshold of the evaluation function > = win < = loss
+    public int termDepth = 5; // Terminate playout after termDepth steps
+    public double etT = 0.0; // The threshold of the evaluation function > = win < = loss
     public double etWv = 1.3;
 
     // Parameters for Implicit Minimax

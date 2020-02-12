@@ -249,7 +249,7 @@ public class Board implements IBoard {
                         if (n > maxMe) {
                             maxMe = n;
                         }
-                    } else {
+                    } else if (board[y][x] == (3 - player)) {
                         if (n > maxOpp) {
                             maxOpp = n;
                         }

@@ -311,8 +311,13 @@ public class UCTNode {
                 score[(3 - winner) - 1] -= options.etWv;
             } else {
                 double eval = board.evaluate(1); // TODO - This value should be between 0 and 1
-                score[0] = eval;
-                score[1] = -eval;
+                if(eval > options.etT) {
+                    score[0] = 1;
+                    score[1] = -1;
+                } else {
+                    score[0] = -1;
+                    score[1] = 1;
+                }
             }
         } else if (winner != IBoard.DRAW) {
             score[winner - 1] = 1;
