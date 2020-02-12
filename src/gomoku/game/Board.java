@@ -153,7 +153,7 @@ public class Board implements IBoard {
     private int checkWinAfterMove(int i, int j, int pl) {
         int c = 1;
         // x - 1 y - 1
-        for (int x = i - 1, y = j - 1; x > 0 && y > 0; y--, x--) {
+        for (int x = i - 1, y = j - 1; x >= 0 && y >= 0; y--, x--) {
             if (board[y][x] == pl) {
                 c++;
                 if (c == 5)
@@ -181,7 +181,7 @@ public class Board implements IBoard {
                 break;
         }
         // x - 1 y
-        for (int x = i - 1; x > 0; x--) {
+        for (int x = i - 1; x >= 0; x--) {
             if (board[j][x] == pl) {
                 c++;
                 if (c == 5)
@@ -200,7 +200,7 @@ public class Board implements IBoard {
                 break;
         }
         // x y - 1
-        for (int y = j - 1; y > 0; y--) {
+        for (int y = j - 1; y >= 0; y--) {
             if (board[y][i] == pl) {
                 c++;
                 if (c == 5)
@@ -210,7 +210,7 @@ public class Board implements IBoard {
         }
         c = 1;
         // x + 1 y - 1
-        for (int x = i + 1, y = j - 1; x < size && y > 0; y--, x++) {
+        for (int x = i + 1, y = j - 1; x < size && y >= 0; y--, x++) {
             if (board[y][x] == pl) {
                 c++;
                 if (c == 5)
@@ -219,7 +219,7 @@ public class Board implements IBoard {
                 break;
         }
         // x - 1 y + 1
-        for (int x = i - 1, y = j + 1; x > 0 && y < size; y++, x--) {
+        for (int x = i - 1, y = j + 1; x >= 0 && y < size; y++, x--) {
             if (board[y][x] == pl) {
                 c++;
                 if (c == 5)
@@ -263,103 +263,87 @@ public class Board implements IBoard {
 
     private double checkLongest(int i, int j, int pl) {
         int c = 1, f = 0, max = 1;
-        boolean stop = false;
         // x - 1 y - 1
-        for (int x = i - 1, y = j - 1; x > 0 && y > 0; y--, x--) {
-            if (!stop && board[y][x] == pl) {
+        for (int x = i - 1, y = j - 1; x >= 0 && y >= 0; y--, x--) {
+            if (board[y][x] == pl) {
                 c++;
             } else if (board[y][x] == 0) {
                 f++;
-                stop = true;
             } else
                 break;
         }
-        stop = false;
         // x + 1 y + 1
         for (int x = i + 1, y = j + 1; x < size && y < size; y++, x++) {
-            if (!stop && board[y][x] == pl) {
+            if (board[y][x] == pl) {
                 c++;
             } else if (board[y][x] == 0) {
                 f++;
-                stop = true;
             } else
                 break;
         }
         if(c + f >= 5)
             max = Math.max(c, max);
-        stop = false;
         c = 1;
         f = 0;
         // x + 1 y
         for (int x = i + 1; x < size; x++) {
-            if (!stop && board[j][x] == pl) {
+            if (board[j][x] == pl) {
                 c++;
             } else if (board[j][x] == 0) {
                 f++;
-                stop = true;
             } else
                 break;
         }
-        stop = false;
         // x - 1 y
-        for (int x = i - 1; x > 0; x--) {
-            if (!stop && board[j][x] == pl) {
+        for (int x = i - 1; x >= 0; x--) {
+            if (board[j][x] == pl) {
                 c++;
             } else if (board[j][x] == 0) {
                 f++;
-                stop = true;
             } else
                 break;
         }
         if(c + f >= 5)
             max = Math.max(c, max);
-        stop = false;
         c = 1;
         f = 0;
         // x y + 1
         for (int y = j + 1; y < size; y++) {
-            if (!stop && board[y][i] == pl) {
+            if (board[y][i] == pl) {
                 c++;
             } else if (board[y][i] == 0) {
                 f++;
-                stop = true;
             } else
                 break;
         }
-        stop = false;
         // x y - 1
-        for (int y = j - 1; y > 0; y--) {
-            if (!stop && board[y][i] == pl) {
+        for (int y = j - 1; y >= 0; y--) {
+            if (board[y][i] == pl) {
                 c++;
             } else if (board[y][i] == 0) {
                f++;
-               stop = true;
             } else
                 break;
         }
         if(c + f >= 5)
             max = Math.max(c, max);
-        stop = false;
         f = 0;
         c = 1;
         // x + 1 y - 1
-        for (int x = i + 1, y = j - 1; x < size && y > 0; y--, x++) {
-            if (!stop && board[y][x] == pl) {
+        for (int x = i + 1, y = j - 1; x < size && y >= 0; y--, x++) {
+            if (board[y][x] == pl) {
                 c++;
             } else if (board[y][x] == 0) {
                 f++;
-                stop = true;
             } else
                 break;
         }
-        stop = false;
         // x - 1 y + 1
-        for (int x = i - 1, y = j + 1; x > 0 && y < size; y++, x--) {
-            if (!stop && board[y][x] == pl) {
+        for (int x = i - 1, y = j + 1; x >= 0 && y < size; y++, x--) {
+            if (board[y][x] == pl) {
                 c++;
             } else if (board[y][x] == 0) {
                 f++;
-                stop = true;
             } else
                 break;
         }
