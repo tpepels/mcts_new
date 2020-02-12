@@ -239,8 +239,7 @@ public class Board implements IBoard {
         if (nMoves < 2)
             return 0;
 
-        double maxMe = 0, maxOpp = 0;
-        double n;
+        double maxMe = 0, maxOpp = 0, n;
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
                 if (board[y][x] != 0) {
@@ -316,6 +315,7 @@ public class Board implements IBoard {
             } else
                 break;
         }
+
         // x y - 1
         for (int y = j - 1; y >= 0; y--) {
             if (board[y][i] == pl) {
