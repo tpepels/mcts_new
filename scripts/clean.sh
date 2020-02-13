@@ -5,3 +5,4 @@ then
   rm -rf build/*
 fi
 
+rm nohup.out

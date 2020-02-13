@@ -9,16 +9,14 @@ public class State {
     public static final DecimalFormat df2 = new DecimalFormat("###,##0.000");
     public static final DecimalFormat df0 = new DecimalFormat("###,##0");
     public long hash;
-    public int visits = 0, lastVisit = 0;
+    public int visits = 0, lastVisit = 0, resultC = 0;
     public short solvedPlayer = 0;
     public boolean visited = false;
+    private double imValue = Integer.MIN_VALUE, sum = 0;
     public SimpleRegression regressor;
     private CUSUMChangeDetector cSum = new CUSUMChangeDetector();
-    private double[][] MA = new double[10][2];
-    private int resultC = 0;
+    private double[] MA = new double[10];
     public State next = null;
-    private double imValue = Integer.MIN_VALUE;
-    private double sum = 0;
 
     public State(long hash) {
         this.hash = hash;
@@ -32,8 +30,7 @@ public class State {
         visits += n;
 
         resultC++;
-        MA[resultC % MA.length][1] = sum / visits;
-        MA[resultC % MA.length][0] = visits;
+        MA[resultC % MA.length] = result[0];
 
         if (regression) {
             if(regressor == null)
@@ -41,6 +38,7 @@ public class State {
             if (cSum.update(sum / visits)) {
                 regressor.clear();
                 cSum.reset();
+
             }
             regressor.addData(visits, sum / visits);
         }
@@ -68,11 +66,11 @@ public class State {
         visited = true;
         if (solvedPlayer == 0) { // Position is not solved, return mean
 
-            if(regressor == null || regressor.getN() < 25 || regressor.getRSquare() < .6)
+            if(regressor == null || regressor.getN() < 10 || regressor.getRSquare() < .6)
                 return getMean(player);
 
-            double regVal = regressor.predict(visits + regSteps);
             double R2 = regressor.getRSquare() * regAlpha;
+            double regVal = regressor.predict(visits + Math.round(R2 * regSteps));
             if(!Double.isNaN(regVal) && !Double.isNaN(R2)) {
                 if (visits > 0)
                     return ((player == 1) ? 1 : -1) * ((1. - R2) * (sum / visits) + (R2 * regVal));

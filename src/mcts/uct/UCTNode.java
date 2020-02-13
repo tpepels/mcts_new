@@ -342,11 +342,7 @@ public class UCTNode {
             else if (c.getValue(player) == Integer.MIN_VALUE)
                 value = Integer.MIN_VALUE + c.getVisits() + Options.r.nextDouble();
             else {
-                if (!options.maxChild)
-                    value = c.getVisits();
-                else {
-                    value = c.getValue(player);
-                }
+                value = c.getVisits();
             }
             if (value > max) {
                 max = value;

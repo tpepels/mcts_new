@@ -147,20 +147,21 @@ my @jobs = ();
 # a matchup is a string of "playertype1, playertype2"
 # you can also use a loop to fill this with different player types
 my @matchups = (
-  "uct_reg0.1,uct",
-  "uct_reg0.3,uct",
-  "uct_reg0.4,uct",
-  "uct_reg0.5,uct",
-  "uct_reg0.6,uct",
-  "uct_reg0.8,uct",
-  "uct_reg0.9,uct"
+  "uct_imm0.1,uct",
+  "uct_imm0.2,uct",
+  "uct_imm0.3,uct",
+  "uct_imm0.4,uct",
+  "uct_imm0.1_fx,uct_fx",
+  "uct_imm0.2_fx,uct_fx",
+  "uct_imm0.3_fx,uct_fx",
+  "uct_imm0.4_fx,uct_fx"
 );
 
 my @games = (
-  "breakthrough",
+  # "breakthrough",
   "hex",
-  "amazons",
-  "atarigo",
+  # "amazons",
+  # "atarigo",
   "gomoku"
 );
 
