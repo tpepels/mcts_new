@@ -88,9 +88,9 @@ public class UCTPlayer implements AIPlayer {
             System.out.println("- player " + board.getPlayerToMove());
             System.out.println("- best child: " + bestChild.toString(board));
             System.out.println("- # of playouts: " + State.df0.format(simulations));
-            System.out.print("- searched for: " + ((endT - startT) / 1000.) + " sec. ");
-            System.out.println((int) Math.round((1000. * simulations) / (endT - startT)) + " ppsec.");
-            System.out.println("- collisions: " + tt.collisions + ", tps: " + State.df0.format(tt.positions));
+            System.out.print("- searched for: " + State.df0.format((endT - startT) / 1000.) + " sec. ");
+            System.out.println(State.df0.format((int) Math.round((1000. * simulations) / (endT - startT))) + " ppsec.");
+            System.out.println("- collisions: " + State.df0.format(tt.collisions) + ", tps: " + State.df0.format(tt.positions));
             System.out.println("- MaxEval: " + Options.maxEval);
             System.out.println("-------- </uct debug > ----------");
 //            if(options.regression) {

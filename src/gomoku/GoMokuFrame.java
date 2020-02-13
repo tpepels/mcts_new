@@ -101,7 +101,7 @@ public class GoMokuFrame extends JFrame {
             }
             System.gc();
             aiThinking = false;
-            System.out.println(" e1: " + board.evaluate(1) + " e2: " + board.evaluate(2));
+            System.out.println(" e1: " + board.longest1 + " e2: " + board.longest2);
         }
 
         public void paint(Graphics g) {
