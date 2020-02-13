@@ -306,7 +306,7 @@ public class UCTNode {
         double[] score = {0, 0};
 
         if (options.earlyTerm) {
-            if (!interrupted) {
+            if (!interrupted && winner != IBoard.DRAW) {
                 score[winner - 1] += options.etWv;
                 score[(3 - winner) - 1] -= options.etWv;
             } else {
