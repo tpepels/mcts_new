@@ -282,6 +282,8 @@ public class Board implements IBoard {
         }
         if(c + f >= 5)
             max = Math.max(c, max);
+        if(max == 4)
+            return max;
         c = 1;
         f = 0;
         // x + 1 y
@@ -304,6 +306,8 @@ public class Board implements IBoard {
         }
         if(c + f >= 5)
             max = Math.max(c, max);
+        if(max == 4)
+            return max;
         c = 1;
         f = 0;
         // x y + 1
@@ -315,7 +319,6 @@ public class Board implements IBoard {
             } else
                 break;
         }
-
         // x y - 1
         for (int y = j - 1; y >= 0; y--) {
             if (board[y][i] == pl) {
@@ -327,6 +330,8 @@ public class Board implements IBoard {
         }
         if(c + f >= 5)
             max = Math.max(c, max);
+        if(max == 4)
+            return max;
         f = 0;
         c = 1;
         // x + 1 y - 1

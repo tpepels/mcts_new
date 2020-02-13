@@ -16,12 +16,12 @@ public class Board implements IBoard {
     private int size, currentPlayer, winner, nMoves;
     private MoveList moveList;
     public boolean realPlay = true;
-    private final DPQ dpq;
+    private final ShortestPath shortestPath;
 
     public Board(int size) {
         this.size = size;
         moveList = new MoveList(size * size);
-        dpq = new DPQ(size);
+        shortestPath = new ShortestPath(size);
     }
 
     @Override
@@ -91,7 +91,7 @@ public class Board implements IBoard {
         if(nMoves < 4)
             return 0;
         // lower is better..
-        double eval = dpq.dijkstra(board, (3-player)) - dpq.dijkstra(board, player);
+        double eval = shortestPath.dijkstra(board, (3-player)) - shortestPath.dijkstra(board, player);
         Options.maxEval = Math.max(Math.abs(eval), Options.maxEval);
         return Math.tanh(eval / (0.5 * Options.maxEval));
     }
@@ -136,7 +136,7 @@ public class Board implements IBoard {
         if (((nMoves + 2) / 2) < size)
             return NONE_WIN;
 
-        if(dpq.dijkstra(board, currentPlayer) == 0)
+        if(shortestPath.dijkstra(board, currentPlayer) == 0)
             return currentPlayer;
 
         return NONE_WIN;
@@ -153,10 +153,10 @@ public class Board implements IBoard {
         if(playout) {
             if(nMoves == (size * size)) {
 
-                if (dpq.dijkstra(board, 1) == 0)
+                if (shortestPath.dijkstra(board, 1) == 0)
                     return P1_WIN;
 
-                if (dpq.dijkstra(board, 2) == 0)
+                if (shortestPath.dijkstra(board, 2) == 0)
                     return P2_WIN;
 
                 return DRAW;

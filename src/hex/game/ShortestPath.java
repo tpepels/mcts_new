@@ -1,21 +1,18 @@
 package hex.game;
 
 import java.util.Arrays;
-import java.util.PriorityQueue;
 
-public class DPQ {
+public class ShortestPath {
     static final int INF = 99999;
     static final int[] xn = {-1, -1, 0, 0, +1, +1}, yn = {-1, 0, -1, +1, +1, 0};
-    public int dist[][];
+    public int[][] dist;
     private long[][] seen;
-    private PriorityQueue<Node> pq;
     private int V, player;
     private long seenI = Long.MIN_VALUE;
 
-    public DPQ(int V) {
+    public ShortestPath(int V) {
         this.V = V;
         seen = new long[V][V];
-        pq = new PriorityQueue<>(V);
         dist = new int[V][V];
     }
 
@@ -27,67 +24,74 @@ public class DPQ {
         for (int i = 0; i < V; i++)
             Arrays.fill(dist[i], INF);
 
-        pq.clear();
-
+        int count = 0;
         if (player == 2) {
             for (int i = 0; i < V; i++) {
-                if(board[i][0] == 3 - player)
+                if (board[i][0] == 3 - player)
                     continue;
                 dist[i][0] = (board[i][0] == player) ? 0 : 1;
-                // Add source node to the priority queue
-                pq.add(new Node(i, 0, dist[i][0]));
+                count++;
             }
         } else {
             for (int i = 0; i < V; i++) {
-                if(board[0][i] == 3 - player)
+                if (board[0][i] == 3 - player)
                     continue;
                 dist[0][i] = (board[0][i] == player) ? 0 : 1;
-                // Add source node to the priority queue
-                pq.add(new Node(0, i, dist[0][i]));
+                count++;
             }
         }
 
         int min = INF;
-        Node n;
-        while (!pq.isEmpty()) {
+        int[] n;
+        while (count < V * V) {
             // remove the minimum distance node from the priority queue
-            n = pq.remove();
+            n = minDistance();
             // adding the node whose distance is finalized
-            seen[n.x][n.y] = seenI;
-            e_Neighbours(board, n.x, n.y);
+            seen[n[0]][n[1]] = seenI;
+            e_Neighbours(board, n[0], n[1]);
 
-            if (player == 2 && n.y == V - 1) {
-                min = Math.min(dist[n.x][n.y], min);
-            } else if (player == 1 && n.x == V - 1) {
-                min = Math.min(dist[n.x][n.y], min);
+            count++;
+
+            if (player == 2 && n[1] == V - 1) {
+                min = Math.min(dist[n[0]][n[1]], min);
+            } else if (player == 1 && n[0] == V - 1) {
+                min = Math.min(dist[n[0]][n[1]], min);
             }
         }
         return min;
     }
 
+    private int[] minDistance() {
+        // Initialize min value
+        int min = Integer.MAX_VALUE;
+        int[] min_node = new int[2];
+
+        for (int x = 0; x < V; x++) {
+            for (int y = 0; y < V; y++) {
+                if (seen[x][y] != seenI && dist[x][y] < min) {
+                    min = dist[x][y];
+                    min_node[0] = x;
+                    min_node[1] = y;
+                }
+            }
+        }
+        return min_node;
+    }
+
     // Function to process all the neighbours of the passed node
     private void e_Neighbours(int[][] board, int xs, int ys) {
         int newDistance, x, y;
-
         for (int i = 0; i < xn.length; i++) {
-
             x = xn[i] + xs;
             y = yn[i] + ys;
 
-            if (!inBounds(x, y) || seen[x][y] == seenI)
-                continue;
-
-            if (board[x][y] == (3 - player))
+            if (!inBounds(x, y) || seen[x][y] == seenI || board[x][y] == (3 - player))
                 continue;
 
             newDistance = dist[xs][ys] + ((board[x][y] == player) ? 0 : 1);
-            if (newDistance < dist[x][y]) {
-                dist[x][y] = newDistance;
-                Node n = new Node(x, y, dist[x][y]);
 
-                if (!pq.contains(n))
-                    pq.add(n);
-            }
+            if (newDistance < dist[x][y])
+                dist[x][y] = newDistance;
         }
     }
 
@@ -96,49 +100,23 @@ public class DPQ {
     }
 
     public static void main(String args[]) {
-        int[][] board = {{0, 0, 0, 0, 0},
-                {0, 0, 0, 1, 1},
+        int[][] board = {{0, 1, 0, 0, 0},
+                {0, 1, 0, 1, 1},
                 {0, 1, 2, 0, 1},
                 {0, 2, 1, 1, 0},
                 {0, 0, 0, 0, 0}};
-        DPQ dijk = new DPQ(board.length);
-        System.out.println(dijk.dijkstra(board, 1));
+        ShortestPath dijk = new ShortestPath(board.length);
+        System.out.println(dijk.dijkstra(board, 2));
 
         for (int i = 0; i < dijk.dist.length; i++) {
             for (int j = 0; j < dijk.dist[i].length; j++) {
-                if (dijk.dist[i][j] == DPQ.INF)
+                if (dijk.dist[i][j] == ShortestPath.INF)
                     System.out.print("i");
                 else
                     System.out.print(dijk.dist[i][j]);
             }
             System.out.println();
         }
-    }
-}
-
-// Class to represent a node in the graph
-class Node implements Comparable<Node> {
-    public int x, y;
-    public int cost;
-
-    public Node(int x, int y, int cost) {
-        this.x = x;
-        this.y = y;
-        this.cost = cost;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return x == ((Node) obj).x && y == ((Node) obj).y;
-    }
-
-    @Override
-    public int compareTo(Node node) {
-        if (cost < node.cost)
-            return -1;
-        if (cost > node.cost)
-            return 1;
-        return 0;
     }
 }
 
