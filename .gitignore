@@ -60,3 +60,4 @@ out/production/mcts_new/mcts/test/POTester.class
 out/production/mcts_new/mcts/test/POTester$moveComparator.class
 out/production/mcts_new/mcts/uct/UCTNode.class
 out/production/mcts_new/mcts/uct/UCTPlayer.class
+/out/production/mcts_new/hex/game/ShortestPath.class

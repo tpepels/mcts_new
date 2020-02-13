@@ -41,7 +41,7 @@ public class ShortestPath {
             }
         }
 
-        int min = INF;
+        int min = (V * V) / 2;
         int[] n;
         while (count < V * V) {
             // remove the minimum distance node from the priority queue
