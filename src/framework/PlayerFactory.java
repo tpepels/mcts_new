@@ -14,7 +14,7 @@ public class PlayerFactory {
         if(p == 1) {
             options.fixedSimulations = false;
             options.nSimulations = 5000;
-            options.regression = true;
+            options.cusum = true;
             // options.imm = true;
             // options.earlyTerm = true;
         } else if (p == 2) {

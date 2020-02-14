@@ -15,14 +15,14 @@ public class State {
     private double imValue = Integer.MIN_VALUE, sum = 0;
     public SimpleRegression regressor;
     private CUSUMChangeDetector cSum = new CUSUMChangeDetector();
-    private double[] MA = new double[10];
+    private double[] MA = new double[20];
     public State next = null;
 
     public State(long hash) {
         this.hash = hash;
     }
 
-    public void updateStats(double[] result, int n, boolean regression) {
+    public void updateStats(double[] result, int n, boolean regression, boolean cusum) {
         assert !this.isSolved() : "UpdateStats called on solved position!";
 
         visited = true;
@@ -32,16 +32,27 @@ public class State {
         resultC++;
         MA[resultC % MA.length] = result[0];
 
-        if (regression) {
-            if(regressor == null)
+            if(regression && regressor == null)
                 regressor = new SimpleRegression();
-            if (cSum.update(sum / visits)) {
-                regressor.clear();
-                cSum.reset();
 
+            if ((regression || cusum) && cSum.update(sum / visits)) {
+                if(regression)
+                    regressor.clear();
+                cSum.reset();
+                //
+                if(cusum && resultC >= MA.length) {
+                    int s = 0;
+                    for (int i = 0; i < MA.length; i++) {
+                        s += MA[i];
+                    }
+                    //double sBef = sum;
+                    sum = s * (double)(visits/MA.length);
+                    //System.out.println("Reset: " + (sBef) + " to " + (sum) + " visits " + visits);
+                }
             }
-            regressor.addData(visits, sum / visits);
-        }
+
+            if(regression)
+                regressor.addData(visits, sum / visits);
     }
 
     public double getRegValue(int steps, int player) {

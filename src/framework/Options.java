@@ -36,7 +36,7 @@ public class Options {
     public boolean regression = false; // Whether to include the regression term in the UCT value
     public int regForecastSteps = 2; // Number of regression steps to forecast into the future
     public double regAlpha = 0.1;
-    // Cusum change detection
+    // Cusum changedetection
     public boolean cusum = false;
     //
     public boolean RAVE = false;
@@ -125,6 +125,8 @@ public class Options {
                 MAST = true;
                 imm = true;
                 imAlpha = 0.4;
+                earlyTerm = true;
+                termDepth = 7;
                 break;
             }
             case "breakthrough": {
@@ -134,6 +136,8 @@ public class Options {
                 k = 500;
                 imm = true;
                 imAlpha = 0.2;
+                earlyTerm = true;
+                termDepth = 8;
                 break;
             }
             case "gomoku": {

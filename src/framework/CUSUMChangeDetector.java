@@ -2,7 +2,7 @@ package framework;
 
 public class CUSUMChangeDetector {
 
-    private final static double DEFAULT_THRESHOLD = .5;
+    private final static double DEFAULT_THRESHOLD = .45;
     private final static long DEFAULT_READY_AFTER = 50;
 
     private double pCusump = 0, pCusumn = 0;

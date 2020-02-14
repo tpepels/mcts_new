@@ -86,6 +86,8 @@ public class SimGame {
             String tag = parts[i];
             if (tag.equals("nh")) {
                 options.heuristics = false;
+            } else if (tag.startsWith("cusum")) {
+                options.cusum = true;
             } else if (tag.startsWith("vanilla")) {
                 options.MAST = false;
                 options.RAVE = false;
