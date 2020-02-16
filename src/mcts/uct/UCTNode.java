@@ -358,7 +358,7 @@ public class UCTNode {
         if (state == null)
             state = tt.getState(hash, false);
         //
-        state.updateStats(value, n, options.regression);
+        state.updateStats(value, n, options.regression, options.cusum);
 
         // implicit minimax backups
         if (options.imm && children != null) {
