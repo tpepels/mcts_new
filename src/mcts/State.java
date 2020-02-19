@@ -22,7 +22,7 @@ public class State {
         this.hash = hash;
     }
 
-    public void updateStats(double[] result, int n, boolean regression, boolean cusum) {
+    public void updateStats(double[] result, int n, boolean regression) {
         assert !this.isSolved() : "UpdateStats called on solved position!";
 
         visited = true;
@@ -32,27 +32,16 @@ public class State {
         resultC++;
         MA[resultC % MA.length] = result[0];
 
-            if(regression && regressor == null)
-                regressor = new SimpleRegression();
+        if (regression && regressor == null)
+            regressor = new SimpleRegression();
 
-            if ((regression || cusum) && cSum.update(sum / visits)) {
-                if(regression)
-                    regressor.clear();
-                cSum.reset();
-                //
-                if(cusum && resultC >= MA.length) {
-                    int s = 0;
-                    for (int i = 0; i < MA.length; i++) {
-                        s += MA[i];
-                    }
-                    //double sBef = sum;
-                    sum = s * (double)(visits/MA.length);
-                    //System.out.println("Reset: " + (sBef) + " to " + (sum) + " visits " + visits);
-                }
-            }
+        if (regression && cSum.update(sum / visits)) {
+            regressor.clear();
+            cSum.reset();
+        }
 
-            if(regression)
-                regressor.addData(visits, sum / visits);
+        if (regression)
+            regressor.addData(visits, sum / visits);
     }
 
     public double getRegValue(int steps, int player) {
@@ -77,12 +66,12 @@ public class State {
         visited = true;
         if (solvedPlayer == 0) { // Position is not solved, return mean
 
-            if(regressor == null || regressor.getN() < 10 || regressor.getRSquare() < .6)
+            if (regressor == null || regressor.getN() < 10 || regressor.getRSquare() < .6)
                 return getMean(player);
 
             double R2 = regressor.getRSquare() * regAlpha;
-            double regVal = regressor.predict(visits + Math.round(R2 * regSteps));
-            if(!Double.isNaN(regVal) && !Double.isNaN(R2)) {
+            double regVal = regressor.predict(visits + regSteps);
+            if (!Double.isNaN(regVal) && !Double.isNaN(R2)) {
                 if (visits > 0)
                     return ((player == 1) ? 1 : -1) * ((1. - R2) * (sum / visits) + (R2 * regVal));
                 else
